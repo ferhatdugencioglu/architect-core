@@ -16,7 +16,6 @@ There is no installation or backend involved. You just open the HTML file in you
 - 🌐 **Fully Offline** — Works without an internet connection
 - 💾 **Backup & Restore** — Export and import data as JSON
 - 🔍 **Global Search** — Search across notes quickly
-- 👤 **Multi-user Structure** — Separate data for different users on the same device
 
 ## How to Use
 
