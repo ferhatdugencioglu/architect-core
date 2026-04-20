@@ -1,6 +1,6 @@
 # 🏗️ Architect Core
 
-> Architect core is a tool I built to keep my technical notes organized. It is fully offline and can be kept in a single HTML file.
+> Architect Core is a tool I built to keep my technical notes organized. It is fully offline and can be kept in a single HTML file.
 
 ## What is it?
 
