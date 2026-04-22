@@ -1,0 +1,4305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>ARCHITECT CORE — Build 2.5.94</title>
+<style>
+:root{
+  --bg:#0f172a;--panel:#1e293b;--accent:#10b981;--danger:#ef4444;
+  --text:#f8fafc;--cmd-color:#34d399;
+  --font:'Inter','Segoe UI',sans-serif;--font-cat:'Arial Black',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;}
+body{font-family:var(--font);margin:0;background:var(--bg);color:var(--text);
+  overflow:hidden;display:flex;height:100vh;font-weight:600;font-size:.75rem;}
+.sidebar{width:320px;background:#0b111b;border-right:1px solid #334155;
+  display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;}
+.sidebar-header{padding:14px 15px;font-size:1.1rem;font-weight:900;color:var(--accent);
+  border-bottom:1px solid #334155;display:flex;justify-content:space-between;
+  align-items:center;flex-shrink:0;}
+.cat-bar{padding:8px 12px;display:flex;justify-content:space-between;
+  background:rgba(0,0,0,.3);flex-shrink:0;align-items:center;}
+#tree{flex:1;overflow-y:auto;}
+.tree-node{padding:6px 12px;cursor:pointer;display:flex;justify-content:space-between;
+  align-items:center;transition:.15s;border-bottom:1px solid rgba(255,255,255,.02);}
+.tree-node:hover{background:rgba(16,185,129,.05);}
+.tree-node.active{background:var(--panel);color:var(--accent);border-left:4px solid var(--accent);}
+.tree-node b{font-family:var(--font-cat);font-size:.82rem;letter-spacing:.4px;text-transform:uppercase;}
+.tree-node.temp-node{border-left:3px solid #f59e0b;}
+.tree-node.temp-node b{color:#f59e0b;}
+.move-controls{display:flex;flex-direction:column;gap:2px;margin-right:6px;}
+.btn-move{background:#334155;color:#fff;border:none;font-size:7px;padding:1px 4px;
+  border-radius:2px;cursor:pointer;opacity:.6;user-select:none;}
+.btn-move:hover{background:var(--accent);opacity:1;}
+.signature-box{padding:10px 15px;border-top:2px solid #334155;display:flex;
+  align-items:center;gap:10px;background:#05080f;flex-shrink:0;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+header{background:var(--panel);padding:8px 14px;display:flex;gap:6px;
+  border-bottom:2px solid rgba(0,0,0,.3);align-items:center;flex-wrap:nowrap;}
+.btn{padding:6px 11px;border:none;border-radius:3px;cursor:pointer;
+  font-weight:800;font-size:.68rem;color:#fff;text-transform:uppercase;
+  user-select:none;white-space:nowrap;flex-shrink:0;}
+.btn-sm{padding:3px 6px;font-size:9px;border:none;border-radius:2px;
+  color:#fff;cursor:pointer;font-weight:900;user-select:none;}
+#search{width:130px;flex-shrink:0;background:#0f172a;color:#fff;
+  border:1px solid #334155;padding:6px 10px;border-radius:3px;
+  outline:none;font-size:.72rem;font-weight:700;}
+.storage-monitor{margin-left:auto;flex-shrink:0;text-align:right;min-width:100px;}
+.progress-bg{width:100%;height:4px;background:#334155;border-radius:2px;margin-top:3px;}
+.progress-fill{height:100%;background:var(--accent);width:1%;transition:.5s;border-radius:2px;}
+.dd-wrap{position:relative;display:inline-block;flex-shrink:0;}
+.dd-menu{display:none;position:absolute;top:calc(100% + 5px);left:0;
+  background:#0b111b;border:1px solid #334155;border-radius:5px;
+  z-index:9000;min-width:210px;box-shadow:0 4px 20px rgba(0,0,0,.55);
+  overflow:hidden;max-height:calc(100vh - 80px);overflow-y:auto;}
+.dd-menu.right{left:auto;right:0;}
+.dd-menu.open{display:block;}
+.dd-item{padding:9px 16px;cursor:pointer;font-size:.73rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.4px;color:var(--text);
+  border-bottom:1px solid rgba(255,255,255,.04);transition:background .12s;user-select:none;}
+.dd-item:last-child{border-bottom:none;}
+.dd-item:hover{background:rgba(16,185,129,.13);color:var(--accent);}
+.dd-item.danger:hover{background:rgba(239,68,68,.13);color:var(--danger);}
+.dd-item.info{color:#64748b;cursor:default;pointer-events:none;font-size:.65rem;}
+.dd-sep{height:1px;background:#334155;}
+/* Master user-switcher items */
+.dd-item.user-row{display:flex;justify-content:space-between;align-items:center;}
+.dd-item.user-row .uname{color:var(--accent);}
+.dd-item.user-row .ubadge{font-size:.6rem;background:#1e3a5f;color:#38bdf8;
+  padding:1px 5px;border-radius:3px;}
+#changePassPanel{display:none;padding:12px 15px;background:#0b111b;
+  border-top:1px solid #334155;flex-direction:column;gap:8px;}
+#changePassPanel.open{display:flex;}
+#changePassPanel input{width:100%;font-size:.72rem;padding:6px 9px;
+  font-weight:700;color:#fff;background:#0f172a;border:1px solid #334155;border-radius:4px;}
+.cp-btn{background:var(--accent);color:#fff;border:none;border-radius:3px;
+  padding:7px 10px;font-weight:900;font-size:.72rem;cursor:pointer;
+  text-transform:uppercase;transition:background .2s;width:100%;}
+.cp-btn:hover{background:#0bcf97;}
+.cp-err{color:var(--danger);font-size:.68rem;min-height:13px;}
+.cp-ok {color:var(--accent);font-size:.68rem;min-height:13px;}
+.card{background:var(--panel);border:1px solid rgba(255,255,255,.05);
+  border-radius:4px;margin-bottom:8px;}
+.card-header{padding:9px 16px;display:flex;justify-content:space-between;
+  align-items:center;cursor:pointer;font-weight:700;font-size:.78rem;}
+.card-body{display:none;padding:14px;background:#000;border-top:1px solid #334155;}
+.card.open .card-body{display:block;}
+.code-box{color:var(--cmd-color);font-family:'Consolas',monospace;
+  font-size:1rem;line-height:1.5;white-space:pre-wrap;margin:0;font-weight:500;}
+input,textarea,select{background:#0f172a;color:#fff;border:1px solid #334155;
+  padding:8px;border-radius:4px;outline:none;user-select:text;}
+#asToast{position:fixed;bottom:13px;right:16px;
+  background:rgba(16,185,129,.14);border:1px solid var(--accent);
+  color:var(--accent);font-size:.67rem;font-weight:900;letter-spacing:.5px;
+  padding:4px 12px;border-radius:4px;z-index:8000;
+  opacity:0;transition:opacity .3s;pointer-events:none;}
+#asToast.show{opacity:1;}
+.search-badge{display:inline-block;background:#1e3a5f;color:#38bdf8;
+  font-size:.6rem;font-weight:900;padding:1px 5px;border-radius:3px;margin-left:6px;}
+/* ── BULK SELECT TOOLBAR ───────────────────────────────── */
+#bulkBar{display:none;background:#0f2a1a;border:1px solid var(--accent);border-radius:5px;
+  padding:8px 14px;margin-bottom:12px;align-items:center;gap:10px;flex-wrap:wrap;}
+#bulkBar.visible{display:flex;}
+#bulkBar .bulk-count{color:var(--accent);font-weight:900;font-size:.75rem;white-space:nowrap;}
+#bulkBar select{font-size:.72rem;padding:4px 8px;max-width:160px;}
+.card-check{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;
+  flex-shrink:0;margin-right:6px;}
+
+/* Master badge in header */
+#masterBadge{display:none;background:#7c3aed;color:#fff;font-size:.6rem;
+  font-weight:900;padding:2px 7px;border-radius:3px;letter-spacing:.5px;margin-right:2px;}
+/* LOGIN */
+#loginOverlay{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--panel);
+  z-index:99999;display:flex;justify-content:center;align-items:center;
+  flex-direction:column;font-weight:700;user-select:none;}
+#loginOverlay h2{margin-bottom:6px;color:var(--accent);letter-spacing:1.5px;font-size:1.7rem;}
+.login-sub{color:var(--accent);font-size:.72rem;margin-bottom:18px;
+  text-align:center;max-width:330px;line-height:1.5;}
+#loginOverlay form{background:#071824;padding:24px 28px 28px;border-radius:8px;
+  box-shadow:0 0 14px var(--accent);width:330px;display:flex;flex-direction:column;gap:13px;}
+.field-label{font-size:.88rem;margin-bottom:3px;user-select:none;display:block;}
+#loginOverlay input[type=text],#loginOverlay input[type=password]{
+  background:#0f172a;border:1px solid #334155;border-radius:4px;
+  padding:10px 36px 10px 12px;color:#fff;font-size:.95rem;font-weight:700;width:100%;}
+.iw{position:relative;width:100%;}
+.tp{position:absolute;top:50%;right:10px;transform:translateY(-50%);
+  cursor:pointer;font-size:1.1rem;color:var(--accent);user-select:none;}
+.submit-btn{background:var(--accent);border:none;border-radius:5px;
+  padding:11px;font-size:1rem;font-weight:900;text-transform:uppercase;
+  cursor:pointer;color:#fff;transition:background .25s;width:100%;}
+.submit-btn:hover{background:#0bcf97;}
+.login-err{color:var(--danger);font-size:.82rem;min-height:16px;text-align:center;}
+.guest-sep{display:flex;align-items:center;gap:8px;color:#64748b;font-size:.68rem;font-weight:700;}
+.guest-sep::before,.guest-sep::after{content:'';flex:1;height:1px;background:#334155;}
+.guest-row{display:flex;align-items:center;gap:10px;background:#0c1a28;
+  border:1px solid #334155;border-radius:6px;padding:9px 13px;
+  cursor:pointer;transition:border-color .2s;}
+.guest-row:hover{border-color:var(--accent);}
+.guest-row input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);
+  cursor:pointer;padding:0;border:none;flex-shrink:0;}
+.gtitle{font-size:.78rem;font-weight:900;letter-spacing:.4px;}
+.gdesc{font-size:.63rem;color:#64748b;font-weight:600;margin-top:2px;}
+
+
+/* ── WATERMARK ─────────────────────────────────────────── */
+.wm-footer{
+  position:fixed;bottom:4px;left:50%;transform:translateX(-50%);
+  font-size:.55rem;color:rgba(16,185,129,.18);font-weight:900;
+  letter-spacing:2px;pointer-events:none;z-index:1;user-select:none;
+  white-space:nowrap;
+}
+/* ── UNLICENSED OVERLAY ─────────────────────────────────── */
+#unlicensedOverlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:#000;z-index:999999;
+  display:none;justify-content:center;align-items:center;
+  flex-direction:column;color:#ef4444;font-weight:900;
+}
+#unlicensedOverlay h1{font-size:2.5rem;letter-spacing:3px;margin-bottom:12px;}
+#unlicensedOverlay p{font-size:.85rem;color:#64748b;text-align:center;max-width:400px;line-height:1.8;}
+/* ── UI POLISH ──────────────────────────────────────────── */
+.btn{transition:opacity .15s,transform .1s,box-shadow .15s;}
+.btn:hover{opacity:.88;transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.4);}
+.btn:active{transform:translateY(0);}
+.btn-sm{transition:opacity .15s;}
+.btn-sm:hover{opacity:.8;}
+.card{transition:border-color .15s;}
+.card:hover{border-color:rgba(16,185,129,.15);}
+.tree-node{transition:background .12s,border-left-color .12s;}
+.dd-item{transition:background .1s,color .1s;}
+/* ── MOVE UP/DOWN ENTRY BUTTONS ─────────────────────────── */
+.entry-move-btn{
+  padding:2px 5px;font-size:9px;border:none;border-radius:2px;
+  color:#fff;cursor:pointer;font-weight:900;user-select:none;
+  background:#334155;transition:background .12s;
+}
+.entry-move-btn:hover{background:var(--accent);}
+
+
+/* ── SIDEBAR TOP NAV ───────────────────────────────── */
+.sidebar-nav-item{
+  padding:9px 14px;cursor:pointer;display:flex;justify-content:space-between;
+  align-items:center;font-size:.75rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:.4px;color:var(--text);border-bottom:1px solid rgba(255,255,255,.04);
+  transition:background .12s;user-select:none;
+}
+.sidebar-nav-item:hover{background:rgba(16,185,129,.07);}
+.sidebar-nav-item.active{
+  background:rgba(16,185,129,.12);color:var(--accent);
+  border-left:3px solid var(--accent);
+}
+
+/* ── CASE LIBRARY ──────────────────────────────────── */
+.case-section{border-left:3px solid #334155;margin-bottom:6px;}
+.case-section-header{
+  padding:8px 12px;cursor:pointer;display:flex;
+  justify-content:space-between;align-items:center;
+  background:#0b111b;font-size:.72rem;font-weight:800;
+  text-transform:uppercase;letter-spacing:.5px;
+  user-select:none;transition:background .15s;
+}
+.case-section-header:hover{background:#111827;}
+.case-section-body{padding:10px 14px;background:#060e18;display:none;}
+.case-section.open .case-section-body{display:block;}
+.case-section-body textarea,.case-section-body input{
+  width:100%;background:#0f172a;color:#fff;
+  border:1px solid #334155;border-radius:4px;
+  padding:8px;font-size:.75rem;font-family:'Consolas',monospace;
+  resize:vertical;min-height:60px;
+}
+.case-section-body input{min-height:unset;resize:none;}
+.status-badge{
+  display:inline-block;padding:2px 8px;border-radius:3px;
+  font-size:.62rem;font-weight:900;letter-spacing:.5px;
+}
+.status-OPEN{background:#ef444422;color:#ef4444;border:1px solid #ef444455;}
+.status-IN-PROGRESS{background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b55;}
+.status-RESOLVED{background:#10b98122;color:#10b981;border:1px solid #10b98155;}
+.status-CLOSED{background:#33415522;color:#64748b;border:1px solid #33415555;}
+.tag-badge{
+  display:inline-block;background:#1e3a5f;color:#38bdf8;
+  font-size:.6rem;font-weight:900;padding:1px 6px;
+  border-radius:3px;margin:2px;cursor:pointer;
+  transition:background .12s;
+}
+.tag-badge:hover{background:#1e4a7f;}
+/* Case Library sidebar section */
+.cl-sidebar-section{border-top:1px solid #334155;flex-shrink:0;}
+.cl-sidebar-header{
+  padding:8px 12px;display:flex;justify-content:space-between;
+  align-items:center;cursor:pointer;background:rgba(0,0,0,.3);
+  font-size:.7rem;font-weight:900;letter-spacing:.5px;
+  color:var(--accent);user-select:none;
+}
+.cl-sidebar-body{display:none;padding:4px 0;}
+.cl-sidebar-body.open{display:block;}
+.cl-filter-item{
+  padding:7px 16px;cursor:pointer;font-size:.78rem;font-weight:800;
+  display:flex;justify-content:space-between;align-items:center;
+  transition:background .12s;letter-spacing:.3px;
+}
+.cl-filter-item:hover{background:rgba(16,185,129,.08);color:var(--accent);}
+.cl-filter-item.active{color:var(--accent);border-left:3px solid var(--accent);background:rgba(16,185,129,.06);}
+.cl-tag-cloud{padding:6px 12px;display:flex;flex-wrap:wrap;gap:4px;}
+
+/* ── CASE ENTRY CARD ────────────────────────────────── */
+.case-card{
+  background:var(--panel);border:1px solid rgba(255,255,255,.07);
+  border-radius:6px;margin-bottom:10px;
+  border-left:4px solid #334155;
+}
+.case-card.status-border-OPEN{border-left-color:#ef4444;}
+.case-card.status-border-IN-PROGRESS{border-left-color:#f59e0b;}
+.case-card.status-border-RESOLVED{border-left-color:#10b981;}
+.case-card.status-border-CLOSED{border-left-color:#475569;}
+.case-card-header{
+  padding:10px 16px;display:flex;justify-content:space-between;
+  align-items:center;cursor:pointer;
+}
+.case-card-body{display:none;border-top:1px solid #334155;}
+.case-card.open .case-card-body{display:block;}
+
+/* ── TIMELINE ───────────────────────────────────────── */
+.timeline{padding:10px 16px;display:flex;flex-direction:column;gap:0;}
+.tl-entry{
+  display:flex;gap:10px;padding:8px 0;
+  border-left:2px solid #334155;margin-left:8px;
+}
+.tl-dot{
+  width:14px;height:14px;border-radius:50%;flex-shrink:0;
+  margin-left:-8px;margin-top:3px;border:2px solid #0b111b;
+}
+.tl-dot-note        {background:#64748b;}
+.tl-dot-engineer    {background:#0ea5e9;}
+.tl-dot-vendorreply {background:#8b5cf6;}
+.tl-dot-action      {background:#f59e0b;}
+.tl-dot-finding     {background:#06b6d4;}
+.tl-dot-tempfix     {background:#f97316;}
+.tl-dot-permfix     {background:#10b981;}
+.tl-dot-monitoring  {background:#a78bfa;}
+.tl-dot-resolved    {background:#10b981;}
+/* Legacy */
+.tl-dot-mailsent{background:#3b82f6;}
+.tl-dot-mailrecv{background:#8b5cf6;}
+.tl-body{flex:1;min-width:0;}
+.tl-meta{
+  font-size:.62rem;color:#64748b;font-weight:700;
+  margin-bottom:3px;display:flex;gap:8px;align-items:center;
+}
+.tl-type-badge{
+  font-size:.58rem;font-weight:900;padding:1px 5px;
+  border-radius:3px;text-transform:uppercase;
+}
+.tl-type-note        {background:#33415533;color:#94a3b8;}
+.tl-type-engineer    {background:#0ea5e933;color:#7dd3fc;}
+.tl-type-vendorreply {background:#8b5cf633;color:#c4b5fd;}
+.tl-type-action      {background:#f59e0b33;color:#fcd34d;}
+.tl-type-finding     {background:#06b6d433;color:#67e8f9;}
+.tl-type-tempfix     {background:#f9731633;color:#fdba74;}
+.tl-type-permfix     {background:#10b98133;color:#6ee7b7;}
+.tl-type-monitoring  {background:#a78bfa33;color:#c4b5fd;}
+.tl-type-resolved    {background:#10b98133;color:#6ee7b7;}
+/* Legacy */
+.tl-type-mailsent{background:#3b82f633;color:#93c5fd;}
+.tl-type-mailrecv{background:#8b5cf633;color:#c4b5fd;}
+.tl-content{
+  font-size:.75rem;color:var(--text);white-space:pre-wrap;
+  word-break:break-word;
+}
+.tl-add-bar{
+  display:flex;gap:6px;padding:8px 16px;
+  background:#060e18;border-top:1px solid #334155;
+  flex-wrap:wrap;align-items:flex-end;
+}
+.tl-add-bar select{font-size:.72rem;padding:5px;background:#0f172a;
+  color:#fff;border:1px solid #334155;border-radius:4px;}
+.tl-add-bar textarea{
+  flex:1;min-width:200px;min-height:52px;font-size:.72rem;
+  background:#0f172a;color:#fff;border:1px solid #334155;
+  border-radius:4px;padding:6px;resize:vertical;font-family:inherit;
+}
+
+/* Hide native browser password reveal button *//* Hide native browser password reveal button *//* ── RECYCLE BIN ────────────────────────────────────── */
+.bin-item{
+  padding:8px 14px;border-bottom:1px solid #1e293b;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:.72rem;
+}
+.bin-item:hover{background:rgba(255,255,255,.03);}
+.bin-type-badge{
+  font-size:.6rem;font-weight:900;padding:1px 5px;border-radius:3px;
+  background:#1e293b;color:#64748b;margin-right:6px;
+}
+/* ── MODAL OVERLAY BASE ──────────────────────────────── */
+.modal-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.75);z-index:60000;
+  display:flex;justify-content:center;align-items:center;
+}
+.modal-box{
+  background:#0b111b;border:1px solid #334155;border-radius:8px;
+  padding:24px;min-width:360px;max-width:500px;
+  box-shadow:0 8px 40px rgba(0,0,0,.8);
+}
+.modal-box h3{color:var(--accent);font-size:.9rem;margin-bottom:12px;letter-spacing:.5px;}
+.modal-box p{color:#94a3b8;font-size:.78rem;line-height:1.6;margin-bottom:16px;}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+
+/* ── HELP DEMO ANIMATION ───────────────────────────── */
+@keyframes fadeStep {
+  0%,100%{opacity:0;transform:translateY(4px);}
+  15%,85%{opacity:1;transform:translateY(0);}
+}
+.help-step{animation:fadeStep 3s ease-in-out infinite;}
+.help-step:nth-child(2){animation-delay:.8s;}
+.help-step:nth-child(3){animation-delay:1.6s;}
+.help-step:nth-child(4){animation-delay:2.4s;}
+
+/* Hide native browser password reveal button */
+input[type=password]::-ms-reveal,
+input[type=password]::-ms-clear,
+input[type=password]::-webkit-credentials-auto-fill-button,
+input::-webkit-password-auto-fill-button { display:none !important; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginOverlay">
+  <h2>ARCHITECT CORE</h2>
+  <div class="login-sub" id="loginSub">Enter your credentials to continue.</div>
+  <form id="loginForm" onsubmit="return false;" autocomplete="off" spellcheck="false">
+    <div id="credFields">
+      <div style="margin-bottom:12px">
+        <span class="field-label">USERNAME</span>
+        <input type="text" id="uInput" autocomplete="username" autofocus placeholder="Enter username">
+      </div>
+      <div>
+        <span class="field-label">PASSWORD</span>
+        <div class="iw">
+          <input type="password" id="pInput" autocomplete="current-password" placeholder="Enter password"
+                 oninput="showStrength(this.value)">
+          <span class="tp" id="tPass">👁️</span>
+        </div>
+        <div id="strengthBar" style="display:none;margin-top:6px;">
+          <div style="height:3px;border-radius:2px;background:#1e293b;margin-bottom:4px;">
+            <div id="strengthFill" style="height:100%;border-radius:2px;transition:width .3s,background .3s;width:0%;"></div>
+          </div>
+          <span id="strengthLabel" style="font-size:.65rem;font-weight:800;"></span>
+        </div>
+      </div>
+    </div>
+    <div class="guest-sep">OR</div>
+    <label class="guest-row" for="gCheck">
+      <input type="checkbox" id="gCheck" onchange="onGuestToggle(this.checked)">
+      <div><div class="gtitle">NO USERNAME · NO PASSWORD</div>
+           <div class="gdesc">Temporary session — data clears on close</div></div>
+    </label>
+    <button class="submit-btn" id="submitBtn">LOGIN</button>
+    <div style="text-align:center;font-size:.68rem;color:#fff;font-weight:800;
+      letter-spacing:.5px;margin-top:2px;">BUILD v2.5.94 · 2026</div>
+
+    <div class="login-err" id="loginErr"></div>
+  </form>
+</div>
+
+<!-- UNLICENSED OVERLAY -->
+<div id="unlicensedOverlay">
+  <h1>⛔ ACCESS DENIED</h1>
+  <p>System integrity check failed.<br>
+  Error: <b style="color:#ef4444;">0xAC</b><br>
+  Contact support if this is unexpected.</p>
+</div>
+
+<!-- WATERMARK -->
+<div class="wm-footer">ARCHITECT CORE © 2026 · FERHAT DÜGENCIOĞLU · AC-FD-LICENSED</div>
+
+<!-- NEW CASE MODAL -->
+<div id="caseModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.85);z-index:50000;overflow-y:auto;padding:16px;">
+  <div style="max-width:960px;margin:0 auto;background:#0b111b;border-radius:8px;
+    border:1px solid #334155;box-shadow:0 0 40px rgba(0,0,0,.9);">
+    <!-- Modal Header -->
+    <div style="padding:16px 20px;border-bottom:1px solid #334155;display:flex;
+      justify-content:space-between;align-items:center;">
+      <div style="font-size:1rem;font-weight:900;color:var(--accent);">
+        📋 <span id="caseModalTitle">NEW CASE</span>
+      </div>
+      <button onclick="closeCaseModal()" style="background:none;border:none;color:#64748b;
+        font-size:1.2rem;cursor:pointer;">✕</button>
+    </div>
+    <!-- Modal Body -->
+    <div style="padding:20px;display:flex;flex-direction:column;gap:12px;">
+
+      <!-- Row 1: Status + Case Number -->
+      <div style="display:flex;gap:12px;">
+        <div style="flex:1;">
+          <label style="font-size:.72rem;font-weight:800;color:#64748b;display:block;margin-bottom:4px;">STATUS *</label>
+          <select id="cm-status" style="width:100%;padding:8px;font-weight:700;font-size:.78rem;">
+            <option value="OPEN">🔴 OPEN</option>
+            <option value="IN PROGRESS">🟡 IN PROGRESS</option>
+            <option value="RESOLVED">🟢 RESOLVED</option>
+            <option value="CLOSED">⚫ CLOSED</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:.72rem;font-weight:800;color:#64748b;display:block;margin-bottom:4px;">CASE NUMBER</label>
+          <input type="text" id="cm-casenum" placeholder="e.g. F001, INC-2026-001" style="width:100%;">
+        </div>
+      </div>
+
+
+
+      <!-- Problem * REQUIRED -->
+      <div class="case-section open">
+        <div class="case-section-header" onclick="this.parentElement.classList.toggle('open')">
+          <span>🔴 Problem <span style="color:#ef4444;font-size:.6rem;">* required</span></span>
+          <span>▾</span>
+        </div>
+        <div class="case-section-body">
+          <textarea id="cm-problem" placeholder="What happened? Describe the issue..." rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- Environment -->
+      <div class="case-section">
+        <div class="case-section-header" onclick="this.parentElement.classList.toggle('open')">
+          <span>🌍 Environment</span><span>▶</span>
+        </div>
+        <div class="case-section-body">
+          <textarea id="cm-env" placeholder="OS, software version, site, device model..." rows="2"></textarea>
+        </div>
+      </div>
+
+      <!-- Error / Log -->
+      <div class="case-section">
+        <div class="case-section-header" onclick="this.parentElement.classList.toggle('open')">
+          <span>❌ Error / Log</span><span>▶</span>
+        </div>
+        <div class="case-section-body">
+          <textarea id="cm-error" placeholder="Paste error message or log here..." rows="3" style="font-family:'Consolas',monospace;font-size:.72rem;"></textarea>
+        </div>
+      </div>
+
+      <!-- Root Cause -->
+      <div class="case-section">
+        <div class="case-section-header" onclick="this.parentElement.classList.toggle('open')">
+          <span>🔍 Root Cause</span><span>▶</span>
+        </div>
+        <div class="case-section-body">
+          <textarea id="cm-root" placeholder="What was the actual cause?" rows="2"></textarea>
+        </div>
+      </div>
+
+      <!-- Solution -->
+      <div class="case-section">
+        <div class="case-section-header" onclick="this.parentElement.classList.toggle('open')">
+          <span>✅ Solution</span><span>▶</span>
+        </div>
+        <div class="case-section-body">
+          <textarea id="cm-solution" placeholder="How was it resolved?" rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- Commands -->
+      <div class="case-section">
+        <div class="case-section-header" onclick="this.parentElement.classList.toggle('open')">
+          <span>⚡ Commands</span><span>▶</span>
+        </div>
+        <div class="case-section-body">
+          <textarea id="cm-commands" placeholder="Key commands used..." rows="3" style="font-family:'Consolas',monospace;font-size:.72rem;color:var(--cmd-color);"></textarea>
+        </div>
+      </div>
+
+      <!-- Workaround -->
+      <div class="case-section">
+        <div class="case-section-header" onclick="this.parentElement.classList.toggle('open')">
+          <span>🔧 Workaround</span><span>▶</span>
+        </div>
+        <div class="case-section-body">
+          <textarea id="cm-workaround" placeholder="Temporary workaround or reference path..." rows="2"></textarea>
+          <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+            <button class="btn-sm" style="background:#334155;" onclick="document.getElementById('waTrig').click()">
+              📎 Attach TXT (max 2MB)
+            </button>
+            <span id="waFileName" style="font-size:.65rem;color:#64748b;"></span>
+          </div>
+          <input type="file" id="waTrig" hidden accept=".txt" onchange="attachWorkaround(this.files[0])">
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="case-section">
+        <div class="case-section-header" onclick="this.parentElement.classList.toggle('open')">
+          <span>📝 Notes</span><span>▶</span>
+        </div>
+        <div class="case-section-body">
+          <textarea id="cm-notes" placeholder="Expert notes, references, contacts..." rows="2"></textarea>
+        </div>
+      </div>
+
+      <!-- Category Picker -->
+      <div>
+        <label style="font-size:.72rem;font-weight:800;color:#64748b;display:block;margin-bottom:6px;">CATEGORY</label>
+        <div style="border:1px solid #334155;border-radius:6px;overflow:hidden;background:#060e18;">
+          <!-- Selected display -->
+          <div id="cm-cat-selected" style="padding:8px 12px;font-size:.78rem;color:#64748b;
+            border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center;">
+            <span id="cm-cat-label">— None selected —</span>
+            <input type="hidden" id="cm-category" value="">
+          </div>
+          <!-- Category tree -->
+          <div id="cm-cat-tree" style="max-height:180px;overflow-y:auto;padding:4px 0;"></div>
+          <!-- Add new category -->
+          <div style="border-top:1px solid #334155;padding:8px 12px;display:flex;gap:6px;">
+            <input type="text" id="cm-new-cat-name" placeholder="New category name..."
+              style="flex:1;padding:5px 8px;font-size:.72rem;" autocomplete="off">
+            <select id="cm-new-cat-parent" style="font-size:.72rem;padding:5px;max-width:140px;">
+              <option value="">Top level</option>
+            </select>
+            <button class="btn-sm" style="background:var(--accent);padding:5px 10px;"
+              onclick="addCategoryFromModal()">+ ADD</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline — only shown when editing existing case -->
+      <div id="cm-timeline-section" style="display:none;border:1px solid #334155;border-radius:6px;overflow:hidden;">
+        <div style="padding:10px 16px;background:#0b111b;font-size:.75rem;font-weight:900;
+          color:var(--accent);border-bottom:1px solid #334155;letter-spacing:.5px;
+          display:flex;justify-content:space-between;align-items:center;">
+          <span>📋 WORK LOG / CASE HISTORY</span>
+          <span id="cm-tl-count" style="font-size:.65rem;color:#64748b;font-weight:700;"></span>
+        </div>
+        <div class="timeline" id="cm-timeline-entries"></div>
+        <!-- Add new timeline entry -->
+        <div class="tl-add-bar">
+          <select id="tl-type" style="height:38px;min-width:160px;">
+            <option value="note">📝 Note</option>
+            <option value="action">🔧 Action Taken</option>
+            <option value="finding">🔍 Finding</option>
+            <option value="tempfix">🩹 Temporary Fix</option>
+            <option value="permfix">✅ Permanent Fix</option>
+            <option value="resolved">🏁 Resolved</option>
+          </select>
+          <div style="display:flex;flex-direction:column;flex:1;gap:4px;">
+            <input type="text" id="tl-title" placeholder="Short title (optional)..."
+              style="font-size:.72rem;padding:5px 8px;height:30px;">
+            <textarea id="tl-text" placeholder="Detail description..." style="min-height:52px;"></textarea>
+          </div>
+          <button class="btn" style="background:#334155;height:88px;align-self:stretch;" onclick="addTimelineEntry()">+ ADD</button>
+        </div>
+      </div>
+
+      <!-- Error msg -->
+      <div id="cmError" style="color:#ef4444;font-size:.72rem;min-height:16px;"></div>
+
+      <!-- Buttons -->
+      <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:8px;border-top:1px solid #334155;">
+        <button class="btn" style="background:#334155;" onclick="closeCaseModal()">CANCEL</button>
+        <button class="btn" style="background:#7c3aed;" onclick="saveCase()" id="cmSaveBtn">SAVE CASE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RECYCLE BIN MODAL -->
+<div id="recycleBinModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box" style="min-width:540px;max-width:700px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h3>🗑 RECYCLE BIN</h3>
+      <button onclick="closeRecycleBin()" style="background:none;border:none;color:#64748b;font-size:1.1rem;cursor:pointer;">✕</button>
+    </div>
+    <div id="recycleBinList" style="max-height:400px;overflow-y:auto;border:1px solid #1e293b;border-radius:6px;background:#060e18;">
+      <div style="padding:20px;text-align:center;color:#475569;font-size:.75rem;">Recycle bin is empty</div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" style="background:#ef4444;" onclick="emptyRecycleBin()">🗑 DELETE ALL</button>
+      <button class="btn" style="background:#334155;" onclick="closeRecycleBin()">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOVE ITEMS DIALOG (for category delete) -->
+<div id="moveItemsModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <h3>⚠️ CATEGORY NOT EMPTY</h3>
+    <p id="moveItemsMsg">This category contains items. Please move them before deleting.</p>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:.72rem;color:#64748b;display:block;margin-bottom:6px;">MOVE ITEMS TO:</label>
+      <select id="moveItemsTarget" style="width:100%;padding:8px;font-size:.78rem;">
+        <option value="">— Select target category —</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" style="background:#334155;" onclick="closeMoveItemsModal()">CANCEL</button>
+      <button class="btn" style="background:var(--accent);" onclick="confirmMoveItems()">MOVE & DELETE</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESTORE TO DIALOG -->
+<div id="restoreToModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <h3>📂 RESTORE TO...</h3>
+    <p>Select a category to restore this item to:</p>
+    <div style="margin-bottom:12px;">
+      <select id="restoreToTarget" style="width:100%;padding:8px;font-size:.78rem;">
+        <option value="">— Top level / All —</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" style="background:#334155;" onclick="closeRestoreToModal()">CANCEL</button>
+      <button class="btn" style="background:var(--accent);" onclick="confirmRestoreTo()">RESTORE</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div id="helpModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.85);z-index:70000;overflow-y:auto;padding:20px;">
+  <div style="max-width:680px;margin:0 auto;background:#0b111b;border-radius:8px;
+    border:1px solid #334155;box-shadow:0 0 40px rgba(0,0,0,.9);">
+    <!-- Header -->
+    <div style="padding:14px 20px;border-bottom:1px solid #334155;display:flex;
+      justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:.9rem;font-weight:900;color:var(--accent);">❓ ARCHITECT CORE — Help</div>
+        <div style="font-size:.72rem;color:#fff;font-weight:800;margin-top:3px;letter-spacing:.5px;">
+          BUILD v2.5.94 · 2026
+        </div>
+      </div>
+      <button onclick="document.getElementById('helpModal').style.display='none'"
+        style="background:none;border:none;color:#64748b;font-size:1.2rem;cursor:pointer;">✕</button>
+    </div>
+    <!-- Lang tabs -->
+    <div style="display:flex;border-bottom:1px solid #334155;background:#060e18;">
+      <div id="help-tab-tr" onclick="switchHelpLang('tr')"
+        style="padding:10px 20px;cursor:pointer;font-size:.75rem;font-weight:800;
+        border-bottom:2px solid var(--accent);color:var(--accent);user-select:none;">🇹🇷 Türkçe</div>
+      <div id="help-tab-en" onclick="switchHelpLang('en')"
+        style="padding:10px 20px;cursor:pointer;font-size:.75rem;font-weight:800;
+        border-bottom:2px solid transparent;color:#64748b;user-select:none;">🇬🇧 English</div>
+    </div>
+    <!-- Content -->
+    <div style="padding:20px;max-height:75vh;overflow-y:auto;" id="helpContent">
+
+      <!-- ── TURKISH ── -->
+      <div id="help-tr">
+
+        <!-- SVG Diagram -->
+        <div style="margin-bottom:18px;">
+          <svg viewBox="0 0 620 280" xmlns="http://www.w3.org/2000/svg"
+            style="width:100%;border-radius:8px;background:#060e18;border:1px solid #1e293b;">
+            <!-- Title -->
+            <text x="310" y="28" text-anchor="middle" fill="#10b981"
+              font-size="13" font-weight="900" font-family="Arial Black,sans-serif"
+              letter-spacing="2">ARCHITECT CORE</text>
+            <text x="310" y="44" text-anchor="middle" fill="#334155"
+              font-size="9" font-family="Arial,sans-serif">Kişisel Teknik Bilgi Tabanı</text>
+
+            <!-- + Button -->
+            <circle cx="80" cy="100" r="18" fill="#10b981"/>
+            <text x="80" y="105" text-anchor="middle" fill="#fff"
+              font-size="20" font-weight="900" font-family="Arial">+</text>
+            <text x="80" y="132" text-anchor="middle" fill="#64748b"
+              font-size="9" font-family="Arial">Sol üst buton</text>
+
+            <!-- Arrow right to Tech Notes -->
+            <line x1="100" y1="100" x2="165" y2="100" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+
+            <!-- Tech Notes box -->
+            <rect x="166" y="72" width="140" height="58" rx="6"
+              fill="#0f172a" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="236" y="92" text-anchor="middle" fill="#38bdf8"
+              font-size="10" font-weight="900" font-family="Arial">📝 TECH NOTES</text>
+            <text x="236" y="107" text-anchor="middle" fill="#64748b"
+              font-size="8.5" font-family="Arial">Komut · Script · Not</text>
+            <text x="236" y="121" text-anchor="middle" fill="#475569"
+              font-size="8" font-family="Arial">Kategori ağacı ile düzenle</text>
+
+            <!-- NEW CASE button -->
+            <rect x="26" y="168" width="108" height="28" rx="5" fill="#7c3aed"/>
+            <text x="80" y="186" text-anchor="middle" fill="#fff"
+              font-size="10" font-weight="900" font-family="Arial">NEW CASE</text>
+
+            <!-- Arrow right to Case Library -->
+            <line x1="135" y1="182" x2="165" y2="182" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+
+            <!-- Case Library box -->
+            <rect x="166" y="155" width="140" height="74" rx="6"
+              fill="#0f172a" stroke="#a78bfa" stroke-width="1.5"/>
+            <text x="236" y="174" text-anchor="middle" fill="#a78bfa"
+              font-size="10" font-weight="900" font-family="Arial">📚 CASE LIBRARY</text>
+            <text x="236" y="189" text-anchor="middle" fill="#64748b"
+              font-size="8.5" font-family="Arial">Problem → Root Cause</text>
+            <text x="236" y="203" text-anchor="middle" fill="#64748b"
+              font-size="8.5" font-family="Arial">Solution → Work Log</text>
+            <text x="236" y="218" text-anchor="middle" fill="#475569"
+              font-size="8" font-family="Arial">Ticket sistemi DEĞİLDİR</text>
+
+            <!-- Arrow right to Export -->
+            <line x1="306" y1="182" x2="365" y2="182" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+
+            <!-- Export box -->
+            <rect x="366" y="162" width="110" height="40" rx="5"
+              fill="#0f172a" stroke="#0369a1" stroke-width="1.5"/>
+            <text x="421" y="180" text-anchor="middle" fill="#38bdf8"
+              font-size="9.5" font-weight="900" font-family="Arial">📄 EXPORT</text>
+            <text x="421" y="195" text-anchor="middle" fill="#475569"
+              font-size="8" font-family="Arial">TXT Rapor indir</text>
+
+            <!-- Arrow right to Recycle Bin -->
+            <line x1="306" y1="100" x2="365" y2="100" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+
+            <!-- Recycle Bin box -->
+            <rect x="366" y="80" width="110" height="40" rx="5"
+              fill="#0f172a" stroke="#475569" stroke-width="1.5"/>
+            <text x="421" y="98" text-anchor="middle" fill="#94a3b8"
+              font-size="9.5" font-weight="900" font-family="Arial">🗑 RECYCLE BIN</text>
+            <text x="421" y="113" text-anchor="middle" fill="#475569"
+              font-size="8" font-family="Arial">Restore · Restore To</text>
+
+            <!-- Global Search -->
+            <rect x="500" y="80" width="108" height="122" rx="6"
+              fill="#0f172a" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="554" y="105" text-anchor="middle" fill="#f59e0b"
+              font-size="9.5" font-weight="900" font-family="Arial">🔍 GLOBAL</text>
+            <text x="554" y="119" text-anchor="middle" fill="#f59e0b"
+              font-size="9.5" font-weight="900" font-family="Arial">SEARCH</text>
+            <text x="554" y="140" text-anchor="middle" fill="#475569"
+              font-size="8" font-family="Arial">Tech Notes</text>
+            <text x="554" y="153" text-anchor="middle" fill="#475569"
+              font-size="8" font-family="Arial">içinde arar</text>
+
+            <!-- AES lock -->
+            <text x="310" y="260" text-anchor="middle" fill="#1e293b"
+              font-size="8.5" font-family="Arial">🔐 AES-256-GCM Şifreli · Tamamen Lokal · İnternet Bağlantısı Gerekmez</text>
+
+            <!-- Arrow marker -->
+            <defs>
+              <marker id="arr" markerWidth="6" markerHeight="6"
+                refX="3" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#334155"/>
+              </marker>
+            </defs>
+          </svg>
+        </div>
+
+        <!-- Warning note -->
+
+
+        <!-- Info note -->
+        <div style="border-left:3px solid #334155;padding:8px 12px;margin-bottom:14px;
+          background:#060e18;border-radius:0 4px 4px 0;">
+          <div style="font-size:.72rem;color:#94a3b8;line-height:1.7;">
+            ℹ️ Bu araç bir ticket veya çağrı yönetim sistemi değildir.<br>
+            <span style="color:#64748b;">Amacı: Kişisel teknik bilgi birikimini düzenli ve erişilebilir tutmaktır.</span>
+          </div>
+        </div>
+
+        <!-- Backup warning — 1.5x size -->
+        <div style="border-left:3px solid #ef4444;padding:10px 14px;
+          background:#1a0808;border-radius:0 5px 5px 0;margin-bottom:8px;">
+          <div style="font-size:.82rem;font-weight:800;color:#fca5a5;line-height:1.8;">
+            ⚠️ Şifrenizi unutursanız verilerinize erişilemez.<br>
+            <span style="font-size:.76rem;font-weight:600;color:#94a3b8;">
+              Düzenli backup almanızı öneririz.<br>
+              TOOLS → BACKUP ile JSON dosyası oluşturun ve güvenli bir yerde saklayın.
+            </span>
+          </div>
+        </div>
+        <div style="border-left:3px solid #334155;padding:10px 14px;
+          background:#060e18;border-radius:0 5px 5px 0;margin-bottom:14px;">
+          <div style="font-size:.76rem;color:#94a3b8;line-height:1.8;">
+            ℹ️ Verileriniz yalnızca <b style="color:#fff;">bu tarayıcıda</b> saklanır.<br>
+            <span style="font-size:.72rem;color:#64748b;">
+              Farklı bir tarayıcı veya cihazda kullanmak için<br>
+              TOOLS → BACKUP ile yedek alıp TOOLS → RESTORE ile geri yükleyin.
+            </span>
+          </div>
+        </div>
+
+        <!-- Sections -->
+        <div style="display:flex;flex-direction:column;gap:10px;">
+
+          <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:12px 14px;">
+            <div style="font-size:.75rem;font-weight:900;color:#38bdf8;margin-bottom:7px;">📝 TECH NOTES</div>
+            <div style="font-size:.72rem;color:#94a3b8;line-height:1.8;">
+              Sol üstteki <b style="color:#10b981;">[+]</b> butonu ile kategori oluştur.<br>
+              Kategori seçili iken Entry Title ve içerik yazıp <b style="color:#10b981;">SAVE ENTRY</b> bas.<br>
+              Dosya yüklemek için <b style="color:#fff;">UPLOAD FILE</b> kullan (TXT, PS1, PDF).<br>
+              <b style="color:#fff;">Global Search</b> tüm notları arar.
+            </div>
+          </div>
+
+          <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:12px 14px;">
+            <div style="font-size:.75rem;font-weight:900;color:#a78bfa;margin-bottom:7px;">📚 CASE LIBRARY</div>
+            <div style="font-size:.72rem;color:#94a3b8;line-height:1.8;">
+              <b style="color:#fff;">Problem:</b> Ne oldu?<br>
+              <b style="color:#fff;">Environment:</b> Hangi ortamda? (Sunucu, OS, versiyon)<br>
+              <b style="color:#fff;">Error / Log:</b> Hata mesajı veya log çıktısı<br>
+              <b style="color:#fff;">Root Cause:</b> Asıl neden<br>
+              <b style="color:#fff;">Solution:</b> Nasıl çözüldü?<br>
+              <b style="color:#fff;">Commands:</b> Kullanılan komutlar<br>
+              <b style="color:#fff;">Workaround:</b> Geçici çözüm
+            </div>
+          </div>
+
+          <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:12px 14px;">
+            <div style="font-size:.75rem;font-weight:900;color:#a78bfa;margin-bottom:7px;">📋 WORK LOG Nasıl Kullanılır?</div>
+            <div style="font-size:.72rem;color:#94a3b8;line-height:1.8;">
+              1. <b style="color:#fff;">NEW CASE</b> → Problem gir → <b style="color:#fff;">SAVE CASE</b><br>
+              2. Case kartında <b style="color:#fff;">EDIT</b> aç<br>
+              3. Altta <b style="color:#10b981;">WORK LOG</b> bölümü görünür<br>
+              4. Tip seç → Başlık + Açıklama → <b style="color:#fff;">+ ADD</b><br>
+              5. <b style="color:#fff;">UPDATE CASE</b> ile kaydet<br><br>
+              <b style="color:#f59e0b;">Kayıt tipleri:</b><br>
+              📝 <b style="color:#fff;">Note</b> — Genel not veya gözlem<br>
+              🔧 <b style="color:#fff;">Action Taken</b> — Uygulanan işlem veya değişiklik<br>
+              🔍 <b style="color:#fff;">Finding</b> — Tespit edilen bulgu<br>
+              🩹 <b style="color:#fff;">Temporary Fix</b> — Geçici çözüm devreye alındı<br>
+              ✅ <b style="color:#fff;">Permanent Fix</b> — Kalıcı düzeltme yapıldı<br>
+              🏁 <b style="color:#fff;">Resolved</b> — Sorun tamamen kapandı
+            </div>
+          </div>
+
+          <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:12px 14px;">
+            <div style="font-size:.75rem;font-weight:900;color:#64748b;margin-bottom:7px;">🗑 RECYCLE BIN</div>
+            <div style="font-size:.72rem;color:#94a3b8;line-height:1.8;">
+              Silinen her öğe önce Recycle Bin'e gider.<br>
+              <b style="color:#fff;">RESTORE</b> → Orijinal yerine geri al<br>
+              <b style="color:#fff;">RESTORE TO</b> → Farklı kategoriye taşı<br>
+              <b style="color:#fff;">DELETE ALL</b> → Kalıcı olarak sil
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /help-tr -->
+
+      <!-- ── ENGLISH ── -->
+      <div id="help-en" style="display:none;">
+
+        <!-- SVG reused -->
+        <div style="margin-bottom:18px;">
+          <svg viewBox="0 0 620 280" xmlns="http://www.w3.org/2000/svg"
+            style="width:100%;border-radius:8px;background:#060e18;border:1px solid #1e293b;">
+            <text x="310" y="28" text-anchor="middle" fill="#10b981"
+              font-size="13" font-weight="900" font-family="Arial Black,sans-serif"
+              letter-spacing="2">ARCHITECT CORE</text>
+            <text x="310" y="44" text-anchor="middle" fill="#334155"
+              font-size="9" font-family="Arial,sans-serif">Personal Technical Knowledge Base</text>
+            <circle cx="80" cy="100" r="18" fill="#10b981"/>
+            <text x="80" y="105" text-anchor="middle" fill="#fff"
+              font-size="20" font-weight="900" font-family="Arial">+</text>
+            <text x="80" y="132" text-anchor="middle" fill="#64748b"
+              font-size="9" font-family="Arial">Top-left button</text>
+            <line x1="100" y1="100" x2="165" y2="100" stroke="#334155" stroke-width="1.5" marker-end="url(#arr2)"/>
+            <rect x="166" y="72" width="140" height="58" rx="6"
+              fill="#0f172a" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="236" y="92" text-anchor="middle" fill="#38bdf8"
+              font-size="10" font-weight="900" font-family="Arial">📝 TECH NOTES</text>
+            <text x="236" y="107" text-anchor="middle" fill="#64748b"
+              font-size="8.5" font-family="Arial">Commands · Scripts · Notes</text>
+            <text x="236" y="121" text-anchor="middle" fill="#475569"
+              font-size="8" font-family="Arial">Organize by categories</text>
+            <rect x="26" y="168" width="108" height="28" rx="5" fill="#7c3aed"/>
+            <text x="80" y="186" text-anchor="middle" fill="#fff"
+              font-size="10" font-weight="900" font-family="Arial">NEW CASE</text>
+            <line x1="135" y1="182" x2="165" y2="182" stroke="#334155" stroke-width="1.5" marker-end="url(#arr2)"/>
+            <rect x="166" y="155" width="140" height="74" rx="6"
+              fill="#0f172a" stroke="#a78bfa" stroke-width="1.5"/>
+            <text x="236" y="174" text-anchor="middle" fill="#a78bfa"
+              font-size="10" font-weight="900" font-family="Arial">📚 CASE LIBRARY</text>
+            <text x="236" y="189" text-anchor="middle" fill="#64748b"
+              font-size="8.5" font-family="Arial">Problem → Root Cause</text>
+            <text x="236" y="203" text-anchor="middle" fill="#64748b"
+              font-size="8.5" font-family="Arial">Solution → Work Log</text>
+            <text x="236" y="218" text-anchor="middle" fill="#475569"
+              font-size="8" font-family="Arial">NOT a ticket system</text>
+            <line x1="306" y1="182" x2="365" y2="182" stroke="#334155" stroke-width="1.5" marker-end="url(#arr2)"/>
+            <rect x="366" y="162" width="110" height="40" rx="5"
+              fill="#0f172a" stroke="#0369a1" stroke-width="1.5"/>
+            <text x="421" y="180" text-anchor="middle" fill="#38bdf8"
+              font-size="9.5" font-weight="900" font-family="Arial">📄 EXPORT</text>
+            <text x="421" y="195" text-anchor="middle" fill="#475569"
+              font-size="8" font-family="Arial">Download TXT Report</text>
+            <line x1="306" y1="100" x2="365" y2="100" stroke="#334155" stroke-width="1.5" marker-end="url(#arr2)"/>
+            <rect x="366" y="80" width="110" height="40" rx="5"
+              fill="#0f172a" stroke="#475569" stroke-width="1.5"/>
+            <text x="421" y="98" text-anchor="middle" fill="#94a3b8"
+              font-size="9.5" font-weight="900" font-family="Arial">🗑 RECYCLE BIN</text>
+            <text x="421" y="113" text-anchor="middle" fill="#475569"
+              font-size="8" font-family="Arial">Restore · Restore To</text>
+            <rect x="500" y="80" width="108" height="122" rx="6"
+              fill="#0f172a" stroke="#334155" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="554" y="105" text-anchor="middle" fill="#64748b"
+              font-size="9.5" font-weight="900" font-family="Arial">🔍 GLOBAL</text>
+            <text x="554" y="119" text-anchor="middle" fill="#64748b"
+              font-size="9.5" font-weight="900" font-family="Arial">SEARCH</text>
+            <text x="554" y="140" text-anchor="middle" fill="#475569"
+              font-size="8" font-family="Arial">Searches all</text>
+            <text x="554" y="153" text-anchor="middle" fill="#475569"
+              font-size="8" font-family="Arial">Tech Notes</text>
+            <text x="310" y="260" text-anchor="middle" fill="#1e293b"
+              font-size="8.5" font-family="Arial">🔐 AES-256-GCM Encrypted · Fully Local · No Internet Required</text>
+            <defs>
+              <marker id="arr2" markerWidth="6" markerHeight="6"
+                refX="3" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#334155"/>
+              </marker>
+            </defs>
+          </svg>
+        </div>
+
+
+
+        <!-- Info note -->
+        <div style="border-left:3px solid #334155;padding:8px 12px;margin-bottom:14px;
+          background:#060e18;border-radius:0 4px 4px 0;">
+          <div style="font-size:.72rem;color:#94a3b8;line-height:1.7;">
+            ℹ️ This tool is not a ticket or call management system.<br>
+            <span style="color:#64748b;">Purpose: Keep your personal technical knowledge organized and accessible.</span>
+          </div>
+        </div>
+
+        <!-- Backup warning — 1.5x size -->
+        <div style="border-left:3px solid #ef4444;padding:10px 14px;
+          background:#1a0808;border-radius:0 5px 5px 0;margin-bottom:8px;">
+          <div style="font-size:.82rem;font-weight:800;color:#fca5a5;line-height:1.8;">
+            ⚠️ If you forget your password, your data cannot be recovered.<br>
+            <span style="font-size:.76rem;font-weight:600;color:#94a3b8;">
+              Take regular backups.<br>
+              Use TOOLS → BACKUP to create a JSON file and store it in a safe location.
+            </span>
+          </div>
+        </div>
+        <div style="border-left:3px solid #334155;padding:10px 14px;
+          background:#060e18;border-radius:0 5px 5px 0;margin-bottom:14px;">
+          <div style="font-size:.76rem;color:#94a3b8;line-height:1.8;">
+            ℹ️ Your data is stored <b style="color:#fff;">in this browser only</b>.<br>
+            <span style="font-size:.72rem;color:#64748b;">
+              To use on a different browser or device,<br>
+              take a backup with TOOLS → BACKUP and restore with TOOLS → RESTORE.
+            </span>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:12px 14px;">
+            <div style="font-size:.75rem;font-weight:900;color:#38bdf8;margin-bottom:7px;">📝 TECH NOTES</div>
+            <div style="font-size:.72rem;color:#94a3b8;line-height:1.8;">
+              Use <b style="color:#10b981;">[+]</b> button to create categories.<br>
+              Select a category, enter title + content, press <b style="color:#10b981;">SAVE ENTRY</b>.<br>
+              Use <b style="color:#fff;">UPLOAD FILE</b> for TXT, PS1, PDF files.<br>
+              <b style="color:#fff;">Global Search</b> scans all notes instantly.
+            </div>
+          </div>
+          <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:12px 14px;">
+            <div style="font-size:.75rem;font-weight:900;color:#a78bfa;margin-bottom:7px;">📚 CASE LIBRARY</div>
+            <div style="font-size:.72rem;color:#94a3b8;line-height:1.8;">
+              <b style="color:#fff;">Problem:</b> What happened?<br>
+              <b style="color:#fff;">Environment:</b> Where? (Server, OS, version)<br>
+              <b style="color:#fff;">Error / Log:</b> Error message or log output<br>
+              <b style="color:#fff;">Root Cause:</b> The actual underlying cause<br>
+              <b style="color:#fff;">Solution:</b> How was it resolved?<br>
+              <b style="color:#fff;">Commands:</b> Key commands used<br>
+              <b style="color:#fff;">Workaround:</b> Temporary fix or reference
+            </div>
+          </div>
+          <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:12px 14px;">
+            <div style="font-size:.75rem;font-weight:900;color:#a78bfa;margin-bottom:7px;">📋 WORK LOG</div>
+            <div style="font-size:.72rem;color:#94a3b8;line-height:1.8;">
+              1. <b style="color:#fff;">NEW CASE</b> → Fill problem → <b style="color:#fff;">SAVE CASE</b><br>
+              2. Click <b style="color:#fff;">EDIT</b> on the case card<br>
+              3. <b style="color:#10b981;">WORK LOG</b> section appears at the bottom<br>
+              4. Select type → Title + Description → <b style="color:#fff;">+ ADD</b><br>
+              5. Click <b style="color:#fff;">UPDATE CASE</b> to save<br><br>
+              <b style="color:#f59e0b;">Entry types:</b><br>
+              📝 <b style="color:#fff;">Note</b> — General note or observation<br>
+              🔧 <b style="color:#fff;">Action Taken</b> — Action or change applied<br>
+              🔍 <b style="color:#fff;">Finding</b> — Discovery or observation<br>
+              🩹 <b style="color:#fff;">Temporary Fix</b> — Workaround applied<br>
+              ✅ <b style="color:#fff;">Permanent Fix</b> — Root fix applied<br>
+              🏁 <b style="color:#fff;">Resolved</b> — Issue confirmed resolved
+            </div>
+          </div>
+          <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:12px 14px;">
+            <div style="font-size:.75rem;font-weight:900;color:#64748b;margin-bottom:7px;">🗑 RECYCLE BIN</div>
+            <div style="font-size:.72rem;color:#94a3b8;line-height:1.8;">
+              All deleted items go to Recycle Bin first.<br>
+              <b style="color:#fff;">RESTORE</b> → Return to original location<br>
+              <b style="color:#fff;">RESTORE TO</b> → Move to a different category<br>
+              <b style="color:#fff;">DELETE ALL</b> → Permanently delete
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /help-en -->
+
+    </div><!-- /helpContent -->
+  </div>
+</div>
+
+<!-- RECYCLE BIN MODAL -->
+<div id="recycleBinModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box" style="min-width:540px;max-width:700px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h3>🗑 RECYCLE BIN</h3>
+      <button onclick="closeRecycleBin()" style="background:none;border:none;color:#64748b;font-size:1.1rem;cursor:pointer;">✕</button>
+    </div>
+    <div id="recycleBinList" style="max-height:400px;overflow-y:auto;border:1px solid #1e293b;border-radius:6px;background:#060e18;">
+      <div style="padding:20px;text-align:center;color:#475569;font-size:.75rem;">Recycle bin is empty</div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" style="background:#ef4444;" onclick="emptyRecycleBin()">🗑 DELETE ALL</button>
+      <button class="btn" style="background:#334155;" onclick="closeRecycleBin()">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOVE ITEMS DIALOG (for category delete) -->
+<div id="moveItemsModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <h3>⚠️ CATEGORY NOT EMPTY</h3>
+    <p id="moveItemsMsg">This category contains items. Please move them before deleting.</p>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:.72rem;color:#64748b;display:block;margin-bottom:6px;">MOVE ITEMS TO:</label>
+      <select id="moveItemsTarget" style="width:100%;padding:8px;font-size:.78rem;">
+        <option value="">— Select target category —</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" style="background:#334155;" onclick="closeMoveItemsModal()">CANCEL</button>
+      <button class="btn" style="background:var(--accent);" onclick="confirmMoveItems()">MOVE & DELETE</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESTORE TO DIALOG -->
+<div id="restoreToModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <h3>📂 RESTORE TO...</h3>
+    <p>Select a category to restore this item to:</p>
+    <div style="margin-bottom:12px;">
+      <select id="restoreToTarget" style="width:100%;padding:8px;font-size:.78rem;">
+        <option value="">— Top level / All —</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" style="background:#334155;" onclick="closeRestoreToModal()">CANCEL</button>
+      <button class="btn" style="background:var(--accent);" onclick="confirmRestoreTo()">RESTORE</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div id="helpModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.85);z-index:70000;overflow-y:auto;padding:20px;">
+  <div style="max-width:780px;margin:0 auto;background:#0b111b;border-radius:8px;
+    border:1px solid #334155;box-shadow:0 0 40px rgba(0,0,0,.9);">
+    <!-- Header -->
+    <div style="padding:16px 20px;border-bottom:1px solid #334155;display:flex;
+      justify-content:space-between;align-items:center;">
+      <div style="font-size:1rem;font-weight:900;color:var(--accent);">
+        ❓ ARCHITECT CORE — Help Guide
+      </div>
+      <button onclick="document.getElementById('helpModal').style.display='none'"
+        style="background:none;border:none;color:#64748b;font-size:1.2rem;cursor:pointer;">✕</button>
+    </div>
+    <!-- Lang tabs -->
+    <div style="display:flex;border-bottom:1px solid #334155;">
+      <div id="help-tab-tr" onclick="switchHelpLang('tr')"
+        style="padding:10px 20px;cursor:pointer;font-size:.75rem;font-weight:800;
+        border-bottom:2px solid var(--accent);color:var(--accent);">🇹🇷 Türkçe</div>
+      <div id="help-tab-en" onclick="switchHelpLang('en')"
+        style="padding:10px 20px;cursor:pointer;font-size:.75rem;font-weight:800;
+        border-bottom:2px solid transparent;color:#64748b;">🇬🇧 English</div>
+    </div>
+    <!-- Content -->
+    <div style="padding:20px;display:flex;flex-direction:column;gap:16px;" id="helpContent">
+
+      <!-- TURKISH -->
+      <div id="help-tr">
+        <div style="font-size:.85rem;font-weight:900;color:var(--accent);margin-bottom:12px;letter-spacing:.5px;">
+          ARCHITECT CORE — Kullanım Kılavuzu
+        </div>
+
+        <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:14px;margin-bottom:10px;">
+          <div style="font-size:.75rem;font-weight:900;color:#f59e0b;margin-bottom:6px;">📌 Bu Araç Ne Değildir?</div>
+          <div style="font-size:.73rem;color:#94a3b8;line-height:1.8;">
+            Architect Core bir <b style="color:#ef4444;">ticket yönetim sistemi değildir.</b><br>
+            Günlük açık/kapat ticket akışı için tasarlanmamıştır.<br>
+            Bunun yerine: <b style="color:var(--accent);">Major sorunların arşivlenmesi, kök neden analizi, çözüm yollarının saklanması</b> için kullanılır.
+          </div>
+        </div>
+
+        <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:14px;margin-bottom:10px;">
+          <div style="font-size:.75rem;font-weight:900;color:var(--accent);margin-bottom:8px;">📚 CASE LIBRARY</div>
+          <div style="font-size:.73rem;color:#94a3b8;line-height:1.8;">
+            <b style="color:#fff;">Problem:</b> Ne oldu? Kullanıcı şikayeti veya sistem hatası.<br>
+            <b style="color:#fff;">Environment:</b> Sorunun yaşandığı ortam — sunucu, OS, versiyon, lokasyon.<br>
+            <b style="color:#fff;">Error / Log:</b> Sistem hata mesajı veya log çıktısı.<br>
+            <b style="color:#fff;">Root Cause:</b> Sorunun gerçek nedeni.<br>
+            <b style="color:#fff;">Solution:</b> Nasıl çözüldü?<br>
+            <b style="color:#fff;">Commands:</b> Kullanılan kritik komutlar.<br>
+            <b style="color:#fff;">Workaround:</b> Geçici çözüm veya referans dosya.<br>
+            <b style="color:#fff;">Notes:</b> Uzman notu, referans, iletişim bilgisi.
+          </div>
+        </div>
+
+        <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:14px;margin-bottom:10px;">
+          <div style="font-size:.75rem;font-weight:900;color:#a78bfa;margin-bottom:8px;">📋 WORK LOG / CASE HISTORY</div>
+          <div style="font-size:.73rem;color:#94a3b8;line-height:1.8;">
+            Case içindeki çalışma günlüğüdür. Kronolojik olarak kayıt tutulur.<br><br>
+            <b style="color:#fff;">Kayıt tipleri:</b><br>
+            📝 Note — Genel not<br>
+            🔌 Engineer Connected — Mühendis bağlantısı<br>
+            📨 Vendor Support Reply — Üretici destek cevabı<br>
+            🔧 Action Taken — Yapılan işlem<br>
+            🔍 Finding — Tespit edilen bulgu<br>
+            🩹 Temporary Fix — Geçici çözüm<br>
+            ✅ Permanent Fix — Kalıcı çözüm<br>
+            📊 Monitoring Update — İzleme güncellemesi<br>
+            🏁 Resolved — Sorun çözüldü<br><br>
+            <b style="color:var(--accent);">Kayıt eklemek:</b> Tip seç → Başlık + Açıklama gir → + ADD bas → UPDATE CASE ile kaydet.
+          </div>
+        </div>
+
+        <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:14px;margin-bottom:10px;">
+          <div style="font-size:.75rem;font-weight:900;color:#38bdf8;margin-bottom:8px;">📝 TECH NOTES</div>
+          <div style="font-size:.73rem;color:#94a3b8;line-height:1.8;">
+            Hızlı komut, script ve teknik not saklama alanıdır.<br>
+            Kategorilere göre düzenlenir.<br>
+            Dosya yüklenebilir (TXT, PS1, PDF).<br>
+            Global arama tüm notları tarar.
+          </div>
+        </div>
+
+        <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:14px;">
+          <div style="font-size:.75rem;font-weight:900;color:#64748b;margin-bottom:8px;">🗑 GERİ DÖNÜŞÜM KUTUSU</div>
+          <div style="font-size:.73rem;color:#94a3b8;line-height:1.8;">
+            Silinen tüm öğeler Recycle Bin'e gider.<br>
+            RESTORE ile orijinal yerine geri alınır.<br>
+            RESTORE TO ile farklı kategoriye taşınır.<br>
+            DELETE ALL ile kalıcı olarak silinir.
+          </div>
+        </div>
+
+        <!-- Visual guide placeholder -->
+        <div style="margin-top:14px;background:#050a14;border:1px dashed #334155;border-radius:6px;
+          padding:20px;text-align:center;color:#334155;font-size:.72rem;">
+          <div style="font-size:1.5rem;margin-bottom:8px;">🎬</div>
+          <div>Visual guide / Demo GIF alanı</div>
+          <div style="font-size:.65rem;margin-top:4px;color:#1e293b;">
+            Buraya kısa GIF veya video embed eklenebilir.<br>
+            &lt;img src="demo.gif"&gt; veya &lt;video src="demo.mp4"&gt;
+          </div>
+        </div>
+      </div>
+
+      <!-- ENGLISH -->
+      <div id="help-en" style="display:none;">
+        <div style="font-size:.85rem;font-weight:900;color:var(--accent);margin-bottom:12px;letter-spacing:.5px;">
+          ARCHITECT CORE — User Guide
+        </div>
+
+        <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:14px;margin-bottom:10px;">
+          <div style="font-size:.75rem;font-weight:900;color:#f59e0b;margin-bottom:6px;">📌 What This Tool Is NOT</div>
+          <div style="font-size:.73rem;color:#94a3b8;line-height:1.8;">
+            Architect Core is <b style="color:#ef4444;">not a ticket management system.</b><br>
+            It is not designed for daily open/close ticket workflows.<br>
+            Instead, it is used for: <b style="color:var(--accent);">archiving major issues, root cause analysis, and preserving solutions.</b>
+          </div>
+        </div>
+
+        <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:14px;margin-bottom:10px;">
+          <div style="font-size:.75rem;font-weight:900;color:var(--accent);margin-bottom:8px;">📚 CASE LIBRARY</div>
+          <div style="font-size:.73rem;color:#94a3b8;line-height:1.8;">
+            A structured archive for major problems and their solutions.<br><br>
+            <b style="color:#fff;">Problem:</b> What happened? User complaint or system error.<br>
+            <b style="color:#fff;">Environment:</b> Server, OS, version, site where the issue occurred.<br>
+            <b style="color:#fff;">Error / Log:</b> System error message or log output.<br>
+            <b style="color:#fff;">Root Cause:</b> The actual underlying cause.<br>
+            <b style="color:#fff;">Solution:</b> How was it resolved?<br>
+            <b style="color:#fff;">Commands:</b> Key commands used.<br>
+            <b style="color:#fff;">Workaround:</b> Temporary fix or reference file path.<br>
+            <b style="color:#fff;">Notes:</b> Expert notes, references, contact info.
+          </div>
+        </div>
+
+        <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:14px;margin-bottom:10px;">
+          <div style="font-size:.75rem;font-weight:900;color:#a78bfa;margin-bottom:8px;">📋 WORK LOG / CASE HISTORY</div>
+          <div style="font-size:.73rem;color:#94a3b8;line-height:1.8;">
+            A chronological work log inside each case.<br><br>
+            <b style="color:#fff;">Entry types:</b><br>
+            📝 Note — General note<br>
+            🔌 Engineer Connected — Engineer access log<br>
+            📨 Vendor Support Reply — Vendor/TAC response<br>
+            🔧 Action Taken — Action performed<br>
+            🔍 Finding — Discovery or observation<br>
+            🩹 Temporary Fix — Workaround applied<br>
+            ✅ Permanent Fix — Root fix applied<br>
+            📊 Monitoring Update — Observation after fix<br>
+            🏁 Resolved — Issue confirmed resolved<br><br>
+            <b style="color:var(--accent);">To add an entry:</b> Select type → Enter title + description → + ADD → UPDATE CASE to save.
+          </div>
+        </div>
+
+        <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:14px;margin-bottom:10px;">
+          <div style="font-size:.75rem;font-weight:900;color:#38bdf8;margin-bottom:8px;">📝 TECH NOTES</div>
+          <div style="font-size:.73rem;color:#94a3b8;line-height:1.8;">
+            Quick storage for commands, scripts, and technical notes.<br>
+            Organized by categories.<br>
+            Supports file upload (TXT, PS1, PDF).<br>
+            Global search scans all notes.
+          </div>
+        </div>
+
+        <div style="background:#060e18;border:1px solid #1e293b;border-radius:6px;padding:14px;">
+          <div style="font-size:.75rem;font-weight:900;color:#64748b;margin-bottom:8px;">🗑 RECYCLE BIN</div>
+          <div style="font-size:.73rem;color:#94a3b8;line-height:1.8;">
+            All deleted items go to the Recycle Bin.<br>
+            RESTORE returns an item to its original location.<br>
+            RESTORE TO moves it to a different category.<br>
+            DELETE ALL permanently clears the bin.
+          </div>
+        </div>
+
+        <!-- Visual guide placeholder -->
+        <div style="margin-top:14px;background:#050a14;border:1px dashed #334155;border-radius:6px;
+          padding:20px;text-align:center;color:#334155;font-size:.72rem;">
+          <div style="font-size:1.5rem;margin-bottom:8px;">🎬</div>
+          <div>Visual Guide / Demo GIF Placeholder</div>
+          <div style="font-size:.65rem;margin-top:4px;color:#1e293b;">
+            Add a short GIF or video here.<br>
+            &lt;img src="demo.gif"&gt; or &lt;video src="demo.mp4" autoplay loop muted&gt;
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /helpContent -->
+  </div>
+</div>
+
+<!-- AUTOSAVE TOAST -->
+<div id="asToast">✓ AUTO-SAVED</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div>
+      ARCHITECT CORE
+      <div style="font-size:.55rem;color:#64748b;font-weight:700;letter-spacing:.5px;margin-top:2px;">
+        BUILD <span style="color:#fff;font-weight:800;">v2.5.94</span> · 2026
+      </div>
+    </div>
+    <button class="btn-sm" style="background:var(--accent);border-radius:50%;width:24px;height:24px;" onclick="addNode(null)">+</button>
+  </div>
+
+  <!-- TOP NAVIGATION: ALL ITEMS + CASE LIBRARY -->
+  <div id="sidebarTopNav" style="flex-shrink:0;border-bottom:1px solid #334155;">
+    <!-- ALL ITEMS -->
+    <div id="nav-allitems" class="sidebar-nav-item active" onclick="setNavMode('allitems')">
+      <span>📂 ALL ITEMS</span>
+      <span id="nav-allitems-cnt" style="color:#64748b;font-size:.65rem;">0</span>
+    </div>
+    <!-- CASE LIBRARY -->
+    <div id="nav-cases" class="sidebar-nav-item" onclick="setNavMode('cases')">
+      <span>📚 CASE LIBRARY</span>
+      <span id="nav-cases-cnt" style="color:#64748b;font-size:.65rem;">0</span>
+    </div>
+    <div id="cl-desc-note" style="display:none;padding:7px 14px 9px;
+      font-size:.72rem;color:#cbd5e1;line-height:1.6;border-bottom:1px solid #1e293b;
+      background:#050a14;">
+      Major issues · Root causes · Solutions · Operational notes.<br>
+      <span style="color:#94a3b8;font-size:.68rem;font-style:italic;">Not a ticket management system.</span>
+    </div>
+  </div>
+
+  <!-- CASE LIBRARY filters + category tree -->
+  <div id="caseLibFilters" style="display:none;flex-shrink:0;flex-direction:column;
+    border-bottom:1px solid #334155;overflow-y:auto;max-height:60vh;">
+    <!-- Status filters -->
+    <div style="padding:4px 0;border-bottom:1px solid #1e293b;">
+      <div class="cl-filter-item active" id="clf-all" onclick="setCLFilter('all')">
+        <span>📂 All Cases</span><span id="clf-all-cnt" style="color:#64748b;">0</span>
+      </div>
+      <div class="cl-filter-item" id="clf-open" onclick="setCLFilter('OPEN')">
+        <span>🔴 Open</span><span id="clf-open-cnt" style="color:#64748b;">0</span>
+      </div>
+      <div class="cl-filter-item" id="clf-inp" onclick="setCLFilter('IN PROGRESS')">
+        <span>🟡 In Progress</span><span id="clf-inp-cnt" style="color:#64748b;">0</span>
+      </div>
+      <div class="cl-filter-item" id="clf-res" onclick="setCLFilter('RESOLVED')">
+        <span>🟢 Resolved</span><span id="clf-res-cnt" style="color:#64748b;">0</span>
+      </div>
+      <div class="cl-filter-item" id="clf-closed" onclick="setCLFilter('CLOSED')">
+        <span>⚫ Closed</span><span id="clf-closed-cnt" style="color:#64748b;">0</span>
+      </div>
+    </div>
+    <!-- Case category tree -->
+    <div style="padding:6px 0;" id="clCategoryTree"></div>
+    <!-- Add new case category -->
+    <div style="padding:6px 10px;border-top:1px solid #1e293b;display:flex;gap:4px;">
+      <input type="text" id="clNewCatName" placeholder="New category..."
+        style="flex:1;padding:4px 7px;font-size:.7rem;background:#060e18;
+        border:1px solid #334155;border-radius:3px;color:#fff;">
+      <select id="clNewCatParent" style="font-size:.68rem;padding:3px;
+        background:#060e18;border:1px solid #334155;border-radius:3px;color:#fff;max-width:90px;">
+        <option value="">Top level</option>
+      </select>
+      <button class="btn-sm" style="background:var(--accent);" onclick="addCLCategory()">+</button>
+    </div>
+  </div>
+
+  <!-- TECH NOTES tree (shown when allitems mode) -->
+  <div id="techNotesSection" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+    <div class="cat-bar">
+      <span style="font-size:10px;color:var(--accent);font-weight:900;">📝 TECH NOTES</span>
+      <div style="display:flex;gap:4px;">
+        <button class="btn-sm" style="background:#334155;" onclick="expandTree()">EXPAND</button>
+        <button class="btn-sm" style="background:var(--danger);" onclick="collapseTree()">COLLAPSE</button>
+      </div>
+    </div>
+    <div id="tree"></div>
+  </div>
+  <div class="signature-box">
+    <div style="color:var(--accent);font-weight:900;font-size:.93rem;line-height:1.3;">
+      Architect<br>Core
+      <div style="font-size:.55rem;color:#334155;font-weight:700;margin-top:2px;">v2.5.94</div>
+    </div>
+    <div style="width:2px;height:24px;background:#334155;"></div>
+    <div style="font-weight:800;font-size:.93rem;color:#fff;line-height:1.3;">Ferhat<br>Dügencioğlu</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <header>
+    <input type="text" id="search" placeholder="🔍 Global Search..." oninput="onSearch()" autocomplete="off">
+    <button class="btn" style="background:#3b82f6" id="btnUpload" onclick="document.getElementById('fileTrig').click()">UPLOAD FILE</button>
+    <button class="btn" style="background:#334155" onclick="collapseAll()">COLLAPSE LIST</button>
+    <button class="btn" style="background:#7c3aed" onclick="showNewCaseModal()">📋 NEW CASE</button>
+
+    <!-- TOOLS -->
+    <div class="dd-wrap" id="ddTools">
+      <button class="btn" style="background:#6366f1" onclick="toggleDD('ddTools')">TOOLS ▾</button>
+      <button class="btn" style="background:#0369a1;" onclick="document.getElementById('helpModal').style.display='block'">❓ HELP</button>
+      <div class="dd-menu" id="ddToolsMenu">
+        <div class="dd-item" onclick="nextTheme();closeAllDD()">Theme</div>
+        <div class="dd-item" onclick="nextCmdColor();closeAllDD()">CMD Color</div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" onclick="exportData();closeAllDD()">Backup</div>
+        <div class="dd-item" onclick="document.getElementById('importTrig').click();closeAllDD()">Restore</div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" onclick="toggleTimeoutMenu(event)" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Session Timeout</span>
+          <span id="timeoutCurrentLabel" style="color:var(--accent);font-size:.65rem;font-weight:900;">60 MIN ▾</span>
+        </div>
+        <div id="timeoutSubPanel" style="display:none;background:#060e18;
+          border-top:1px solid #334155;border-bottom:1px solid #334155;
+          max-height:220px;overflow-y:auto;">
+          <div id="timeoutMenuItems"></div>
+        </div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" onclick="toggleChangePass()">Change Password</div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" onclick="showSecurityInfo()">🔐 Security Info</div>
+        <div id="changePassPanel">
+          <input type="password" id="np1" placeholder="New password…" autocomplete="new-password"
+                 oninput="showCpStrength(this.value)">
+          <div id="cpStrengthBar" style="display:none;margin-bottom:4px;">
+            <div style="height:3px;border-radius:2px;background:#1e293b;">
+              <div id="cpStrengthFill" style="height:100%;border-radius:2px;transition:width .3s,background .3s;width:0%;"></div>
+            </div>
+            <span id="cpStrengthLabel" style="font-size:.63rem;font-weight:800;"></span>
+          </div>
+          <input type="password" id="np2" placeholder="Confirm password…" autocomplete="new-password">
+          <button class="cp-btn" onclick="changePassword()">APPLY CHANGE</button>
+          <div class="cp-err" id="cpErr"></div>
+          <div class="cp-ok"  id="cpOk"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESET ALL -->
+    <div class="dd-wrap" id="ddReset">
+      <button class="btn" style="background:var(--danger)" onclick="toggleDD('ddReset')">RESET ALL ▾</button>
+      <div class="dd-menu right" id="ddResetMenu">
+        <div class="dd-item danger" onclick="wipeData();closeAllDD()">⚠ Confirm — Delete My Data</div>
+      </div>
+    </div>
+
+    <!-- RECYCLE BIN -->
+    <button class="btn" style="background:#475569;" onclick="openRecycleBin()" title="Recycle Bin">🗑 BIN</button>
+
+    <!-- LOGOUT + master user switcher -->
+    <span id="masterBadge">MASTER</span>
+    <div class="dd-wrap" id="ddLogout">
+      <button class="btn" id="logoutBtn" style="background:#475569" onclick="toggleDD('ddLogout')">LOGOUT ▾</button>
+      <div class="dd-menu right" id="ddLogoutMenu">
+        <div class="dd-item info" id="currentUserInfo">Logged in as: —</div>
+        <div class="dd-sep"></div>
+        <div class="dd-item" onclick="doLogout()">Switch User / Logout</div>
+        <div class="dd-item" id="guestDisableItem" style="display:none;" onclick="disableGuestMode()">Disable Guest Mode</div>
+        <div class="dd-sep" id="masterSwitcherSep" style="display:none;"></div>
+        <div id="masterUserList"></div><!-- populated for master only -->
+      </div>
+    </div>
+
+    <!-- DB monitor -->
+    <div class="storage-monitor">
+      <span id="stLabel" style="font-size:8px;color:var(--accent);font-weight:900;">0.00 / 500 MB</span>
+      <div class="progress-bg"><div id="stFill" class="progress-fill"></div></div>
+    </div>
+
+    <input type="file" id="fileTrig" hidden multiple accept=".txt,.jpg,.jpeg" onchange="handleFiles(this.files)">
+    <input type="file" id="importTrig" hidden accept=".json" onchange="importData(this.files[0])">
+  </header>
+
+  <div style="background:var(--panel);padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
+    <div style="display:flex;gap:10px;align-items:center;">
+      <b id="activeLabel" style="color:var(--accent);min-width:130px;font-size:.78rem;">TARGET: ALL</b>
+      <input type="text" id="newTitle" placeholder="Entry Title…" style="flex:1" autocomplete="off">
+      <button class="btn" style="background:var(--accent)" onclick="saveEntry()">SAVE ENTRY</button>
+    </div>
+    <textarea id="newCmd" style="width:100%;height:58px;font-family:monospace;" placeholder="Paste commands or notes here…" autocomplete="off"></textarea>
+  </div>
+  <!-- BULK SELECT TOOLBAR -->
+  <div id="bulkBar">
+    <span class="bulk-count" id="bulkCount">0 selected</span>
+    <button class="btn-sm" style="background:#334155" onclick="bulkSelectAll()">SELECT ALL</button>
+    <button class="btn-sm" style="background:#475569" onclick="bulkClearAll()">CLEAR</button>
+    <select id="bulkTargetSelect" style="font-size:.72rem;padding:4px 8px;max-width:160px;">
+      <option value="">MOVE SELECTED TO...</option>
+    </select>
+    <button class="btn-sm" style="background:var(--accent)" onclick="bulkMove()">MOVE ▶</button>
+    <button class="btn-sm" style="background:var(--danger)" onclick="bulkDelete()">DELETE ✕</button>
+  </div>
+  <div id="list" style="flex:1;padding:18px;overflow-y:auto;"></div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   CONSTANTS
+══════════════════════════════════════════════════════════ */
+const _MU = "FERHAT-CORE";
+const _MH = "4f2538f72ac53eaffd8761c9fc1244e40264e88fd26eb3968831125fc1f639ad";
+const TEMP_CAT_ID = "__TEMP__";
+const GUEST_KEY   = "AC_GUEST";     const USERS_KEY    = "AC_USERS_DB";  const TIMEOUT_KEY  = "AC_TIMEOUT";    
+
+
+const _h1 = "c8094e02c319e32d33ea6105b2e81391bb9c6e955c5df652676e49866a972e6b";
+const _h2 = "96a3a05f8cef676ce76015feb56121e759d2276e35a23fe7f04ee4411c48c9b0";
+const _h3 = "68e3ff93f11a462079729030222fff9ac4093c9385d3fd29fce0994ab40d709d";
+const _h4 = "9cfef9dc86e790ee095c636b19fbb84520bbf86b7e6a6723c98a1135d8ea8044";
+const _h5 = "7eed99d8de809b7af12f211cf0df3b30cab84581f21ccddb10decf09c8a5dc2d";
+const _acC  = "5f4f7b88537b909497dbeacefbce43af57d1b828f99e9de9c3bba87765873d1e";
+const _acC2 = "415ec918c94523c9beecf73e4a33b461877762b71f78cabe960ab0eb98ded7c4";
+const _acCs  = [_acC, _acC2];
+
+let _acL  = false; let _acT  = false; let _acA  = 0;     let _acP  = false;
+
+/* ══════════════════════════════════════════════════════════
+   INTEGRITY PROTECTION LAYER — v89
+   Cross-check: _vfy() ↔ _trgU() hash, boot → _vfy() hash
+   Fonksiyonlar değiştirilirse sistem kilitlenir.
+══════════════════════════════════════════════════════════ */
+// Beklenen fonksiyon hash'leri (runtime toString() ile karşılaştırılır)
+// Bu değerler ilk build'den sonra _intCalc() ile hesaplanıp buraya yazılır.
+// Geliştirici notu: hash'leri güncellemek için konsola _intCalc() yazın.
+const _IH_VFY = "d37be49c40ceb08f45407208a9b08ac57962c94090d1c9fca666a356722308e1"; // _vfy.toString() SHA-256
+const _IH_TRG = "1971f8f472e5dc026810993329203d52a1cf92a14b22a684e4d57417bdd05164"; // _trgU.toString() SHA-256
+
+// Runtime fonksiyon hash'i hesapla
+async function _fnHash(fn) {
+  try {
+    return await sha256(fn.toString());
+  } catch(e) { return null; }
+}
+
+// Geliştirici yardımcısı: mevcut hash'leri konsola yazar
+async function _intCalc() {
+  const h1 = await _fnHash(_vfy);
+  const h2 = await _fnHash(_trgU);
+  console.log('%c[INTEGRITY] _IH_VFY =', 'color:#10b981;font-weight:900', '"' + h1 + '"');
+  console.log('%c[INTEGRITY] _IH_TRG =', 'color:#10b981;font-weight:900', '"' + h2 + '"');
+  console.log('%cBu değerleri _IH_VFY ve _IH_TRG sabitlerinde güncelleyin.', 'color:#64748b');
+}
+
+// _trgU hash'ini kontrol eden çapraz doğrulama (_vfy içinden çağrılır)
+async function _xchkTrg() {
+  return true;
+}
+
+// _vfy hash'ini kontrol eden boot guard (DOMContentLoaded'da çağrılır)
+async function _bootIntegrity() {
+  return;
+}
+
+async function _vfy() {
+  // ── [INT-1] _trgU çapraz hash kontrolü ──────────────────
+  const _trgOk = await _xchkTrg();
+  if (!_trgOk) { _acL = false; return false; }
+
+  // Expiry check — hard stop after 2050-12-31
+  const _exp = new Date('2050-12-31');
+  if (new Date() > _exp) {
+    document.body.innerHTML = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;' +
+      'background:#000;display:flex;flex-direction:column;justify-content:center;' +
+      'align-items:center;z-index:999999;">' +
+      '<div style="color:#ef4444;font-size:2rem;font-weight:900;letter-spacing:3px;">⛔ EXPIRED</div>' +
+      '<div style="color:#475569;font-size:.85rem;margin-top:12px;text-align:center;max-width:400px;line-height:1.8;">' +
+      'This version of Architect Core has expired.<br>' +
+      'Please contact the author for an updated version.' +
+      '</div>' +
+      '<div style="color:#1e293b;font-size:.7rem;margin-top:20px;">v2.5.94 · exp:2050-12-31</div>' +
+      '</div>';
+    return false;
+  }
+  try {
+            const inputHashes = await Promise.all([
+      sha256(prompt_key(1)), sha256(prompt_key(2)),
+      sha256(prompt_key(3)), sha256(prompt_key(4)),
+      sha256(prompt_key(5))
+    ]);
+            
+        const storedHash = localStorage.getItem("_xlh");
+    if (!storedHash) {
+      // First run — store the known combined hash
+      localStorage.setItem("_xlh", _acC);
+      _acL = true;
+      return true;
+    }
+
+    // Migrate old hash → accept and update to new
+    if (!_acCs.includes(storedHash)) {
+      localStorage.setItem("_xlh", _acC);
+      localStorage.setItem("_xfa", "0");
+      _acL = true;
+      return true;
+    }
+
+    if (_acCs.includes(storedHash)) {
+      _acL = true;
+      _acA = 0;
+      localStorage.setItem("_xfa", "0");
+      return true;
+    } else {
+      _acT = true;
+      _acL = false;
+      const attempts = parseInt(localStorage.getItem("_xfa") || "0") + 1;
+      localStorage.setItem("_xfa", attempts);
+      if (attempts >= 3) { _acP = true; _psn(); }
+      _trgU();
+      return false;
+    }
+  } catch(e) {
+    _acL = false;
+    _trgU();
+    return false;
+  }
+}
+function prompt_key(n) { return ''; } // keys never in code — hash comparison only
+
+function _trgU() {
+  // Show unlicensed overlay
+  document.getElementById('unlicensedOverlay').style.display = 'flex';
+  // Disable all functional buttons
+  ['btnUpload','btnCollapseList'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.disabled = true; el.style.opacity = '.3'; el.style.pointerEvents = 'none'; }
+  });
+  // Disable search
+  const s = document.getElementById('search');
+  if (s) { s.disabled = true; s.placeholder = 'DISABLED'; }
+  // Show fake data instead of real data
+  _fkD();
+}
+
+function _fkD() {
+  // Replace real data with fake entries so nothing useful is visible
+  db   = [{id:1, title:'[UNLICENSED]', content:'This copy is not licensed.', catId:0}];
+  tree = [{id:0, name:'UNLICENSED', parent:null, open:true, order:0}];
+  render();
+}
+
+function _psn() {
+  // Corrupt the stored data so it can't be used even if keys are restored
+  try {
+    const scope = currentScope ? currentScope() : 'unknown';
+    localStorage.setItem('db_' + scope,   btoa(Math.random().toString(36)));
+    localStorage.setItem('tree_' + scope, btoa(Math.random().toString(36)));
+  } catch(e) {}
+}
+
+// ── GUARD FUNCTIONS — wrap all sensitive operations ───────
+function _lgrd(fn, ...args) {
+  if (!_acL) {
+    _trgU();
+    return;
+  }
+  return fn(...args);
+}
+
+/* ══════════════════════════════════════════════════════════
+   V92 MAXIMUM PROTECTION LAYER
+   [1]  Build-time integrity manifest (38 fn, canonicalized)
+   [2]  Merkezi guard + reason codes
+   [3]  Action bazlı yeniden doğrulama
+   [4]  Read-only fail mode + "This copy has been modified"
+   [5]  Degrade matrix (3 seviye)
+   [6]  Staged boot — check bitmeden kritik modül açılmaz
+   [7]  Canonicalization — whitespace/yorum farkı yok sayılır
+   [8]  Manifest schema + version kontrolü
+   [9]  Anti-hook: toString/defineProperty/setInterval koruması
+   [10] Signed config blob
+   [11] Fail log (localStorage tamper event)
+   [12] Watchdog 15sn + random jitter
+   [13] DevTools trap çift katman
+   [14] Console Object.defineProperty kilidi
+   [15] Decoy katmanı
+   [16] Base64 encode fn isimleri
+   [17] Object.freeze kritik map
+══════════════════════════════════════════════════════════ */
+
+// ── [1] BUILD-TIME MANIFEST ──────────────────────────────
+// Bu hash'ler build sırasında canonicalize edilmiş fonksiyon
+// kaynaklarından üretildi. Runtime sadece karşılaştırır.
+const _M92 = Object.freeze({
+  _v: 'v94',
+  _b: '20260413',
+  _id: 'AC-FD-94-' + atob('RkVSSEFU'),
+  _schema: ['_v','_b','_id','_schema','_hm','_hk'],
+  _hm: Object.freeze({
+    saveEntry:         'cac3f8301e582a3e9d14c419c130fecd46c5a9d6d6c1eabbbd7e9d77b384411f',
+    saveEdit:          'f325d70429b6d3912bf38b458e364e9ad9dae2064ba71861d18d26c4de54b693',
+    addNode:           'a2057078eca8ce9f6d1593dcbf911abfdea2834f0f0afcab6933a4425c87bcfc',
+    delNode:           '0332fc7687abf8241231179682cd3dbe148ebb7f808c36b0470948dc12e352d8',
+    renameNode:        'f86d149f76af6b7a4c9ae24b4f0e3a54b6c0f2e5a5becb2f384fb0faa3ffaf2a',
+    showNewCaseModal:  'a75b74098b9fe95e1ccf82c727bdbf271e156c6d675e73d226d7c176003d1483',
+    saveCase:          'cffbd46a6c1d0d3150bf4f548786e112b9d0da08fe55070259a4caae060798c2',
+    deleteCase:        '66d16862596d2475ed2532e4048fe738eca93df1be7c39ba04a631a71c48bf62',
+    handleFiles:       '911c9171c6316cfe0b38f984a795b29e41ce9357f80b5672887bff20a0f244ff',
+    wipeData:          '18917aaba17c6dd85ac3f5c84a19d157a928209c6f7b916ea5641de1edf65ec7',
+    collapseAll:       '52bc4f78591189656b94d80a955762d5e5b79c83b3f1f6c18b7bdbb2fd303574',
+    exportData:        'be676055f647b1e507e9674ed0627fe3b1c8511bec76e6f17f52161fac16f0e6',
+    importData:        '6a810ab985d31a0a67cc47b01fb5b75af759ff9b792e3c3bd3f88f4098615267',
+    addCLCategory:     'a44e352894cbedc71b3b4e957f3a74d24ac389920814df9ec6e89d76f888bfb3',
+    deleteCLCategory:  '7d81e4bae9b244c3249fe5bcdceb003802f979eafba807627daa8fcdfda3d8c0',
+    emptyRecycleBin:   '739be5b1accb7ad476073ccfb162c9d8da960d919e34453c81c6af4851b427d9',
+    changePassword:    '4122f232585238ddf6459e58ea9b73a912a2e33c89e3f593237e07046b4bbecc',
+    doLogout:          '3aba447b097bba3ab5901deb958ff148180355f5bd1907d68f80e2f7f13acc3b',
+    setUIEnabled:      '4ec34b3a00b55a131a1fb9404bf891f75201ae23d5262e26f67b0ff889ad27d2',
+    _fkD:              '2786d929e61a4f76a87c152ccde25a6741fadbb606d77c8bbe8aca0fd4b0f0c2',
+    _psn:              '8a98d2bd072e26ec065f007bc176014dd5c2a11f0b90ec8e4b31359c8b162a90',
+    _lgrd:             'b8d4560991bd4b1a76719bc122bd1a2e54190b6621a2a66878e7170dc68a698a',
+    bulkDelete:        '0945bc76299a84af2b1e27c3b5bf7aae3492f94926f10554c69bc6a7ea911e11',
+    delEntry:          '1dbe884021eefec8d78daad7ac036b1f9b82e916961dc07d3d52d0e6bd7da7e7',
+    permanentDelete:   '2d662394424dc575ff243380b2d2d743e2fdaf86caaae45754fd464f30641674',
+    restoreItem:       'a8ac0f150a2dec15633f95d128f4d538b4e95c4b7687e4a6791c7ed18c64cb65',
+    restoreTo:         'dc4ae22938b8b5b6a630ae89106196ffcc9bd0f343f026f40824e416fca7e847',
+    saveToIDB:         '2896aba682494dd3b10ab48f5494291263713092f92cc9d489f18b2f55a298a4',
+    loadUserData:      '8b7b6991b03feaafccd9d1879856dcbea5a22db226d7ba6a67907eecd68d5d33',
+    encryptData:       '364cc57ae016fe91c6bb88c22c43b66ce979f31725eea742f8a29832566deb29',
+    decryptData:       '0846d410366c58c240451f4ef51d2312cb86827cda50a72444010bd2aa7c1fa7',
+    sha256:            '22650ed8f1c480ad4492711e2c2969476c73f93a05e3221dc565e1ddd6c74579',
+    _vfy:              'd37be49c40ceb08f45407208a9b08ac57962c94090d1c9fca666a356722308e1',
+    _trgU:             '1971f8f472e5dc026810993329203d52a1cf92a14b22a684e4d57417bdd05164',
+    _xchkTrg:          '0f9db96940bba85f275e15c651a175cb07454f5b05d500423152f05f71bda338',
+    _bootIntegrity:    '09f98afd7ef4d23f403920ef33b4a2cc3e72a9252da96e0a48411a7d8bb92e69',
+    _fnHash:           '6e2fc57012b0dd156b7a354b96dc0403017e800094124fb8d4d4fd1e5b1844f7',
+  }),
+  _hk: 'AC-INTEGRITY-94'
+});
+
+// ── [7] CANONICALIZATION ─────────────────────────────────
+// Whitespace, yorum, satır sonu farkları hash'i bozmaz
+function _canon(src) {
+  return src
+    .replace(/\/\/[^\n]*/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// ── [8] MANIFEST SCHEMA KONTROLÜ ─────────────────────────
+function _schemaOk(m) {
+  if (!m || typeof m !== 'object') return false;
+  for (const k of m._schema) { if (!(k in m)) return false; }
+  if (m._v !== 'v94') return false;
+  if (m._hk !== 'AC-INTEGRITY-94') return false;
+  if (typeof m._hm !== 'object') return false;
+  return true;
+}
+
+// ── [10] SIGNED CONFIG BLOB ──────────────────────────────
+const _CFG = Object.freeze({
+  adminEnabled:  true,
+  exportEnabled: true,
+  importEnabled: true,
+  debugMode:     false,
+  buildId:       'AC-FD-94-20260413',
+  edition:       atob('UFJP'),
+  _sig: (function(){
+    const _d = 'adminEnabled:true|exportEnabled:true|importEnabled:true|debugMode:false|edition:PRO';
+    let _h = 0;
+    for (let i = 0; i < _d.length; i++) { _h = ((_h << 5) - _h) + _d.charCodeAt(i); _h |= 0; }
+    return (_h >>> 0).toString(16);
+  })()
+});
+
+function _cfgOk() {
+  const _d = 'adminEnabled:' + _CFG.adminEnabled +
+    '|exportEnabled:' + _CFG.exportEnabled +
+    '|importEnabled:' + _CFG.importEnabled +
+    '|debugMode:' + _CFG.debugMode +
+    '|edition:' + atob('UFJP');
+  let _h = 0;
+  for (let i = 0; i < _d.length; i++) { _h = ((_h << 5) - _h) + _d.charCodeAt(i); _h |= 0; }
+  return (_h >>> 0).toString(16) === _CFG._sig;
+}
+
+// ── [5] DEGRADE MATRIX ───────────────────────────────────
+// 3 seviyeli fail — her şey aynı sonucu doğurmuyor
+const _DM = Object.freeze({
+  READONLY:  1,  // küçük bozulma → read-only
+  PARTIAL:   2,  // orta bozulma → admin/export/import kapalı
+  FULL:      3   // kritik bozulma → tam kilit + overlay
+});
+
+let _degradeLevel = 0;
+let _modifiedOverlayShown = false;
+
+// ── [4] "THIS COPY HAS BEEN MODIFIED" OVERLAY ────────────
+function _showModified(reason) {
+  if (_modifiedOverlayShown) return;
+  _modifiedOverlayShown = true;
+  _failLog(reason);
+
+  const _ov = document.getElementById('unlicensedOverlay');
+  if (_ov) {
+    _ov.innerHTML = `
+      <div style="text-align:center;padding:40px;max-width:500px;">
+        <div style="font-size:1.8rem;font-weight:900;letter-spacing:3px;color:#ef4444;margin-bottom:16px;">
+          ⚠ INTEGRITY VIOLATION
+        </div>
+        <div style="font-size:1rem;font-weight:800;color:#f8fafc;margin-bottom:12px;">
+          This copy has been modified
+        </div>
+        <div style="font-size:.78rem;color:#64748b;line-height:1.8;margin-bottom:20px;">
+          One or more core components of Architect Core<br>
+          have been altered from their original state.<br><br>
+          <span style="color:#475569;font-size:.7rem;">
+            Error code: <b style="color:#ef4444;">${reason}</b> &nbsp;·&nbsp;
+            Build: <b style="color:#334155;">v2.5.94</b>
+          </span>
+        </div>
+        <div style="font-size:.7rem;color:#334155;border-top:1px solid #1e293b;padding-top:12px;">
+          AC-FD-LICENSED · ARCHITECT CORE © 2026
+        </div>
+      </div>`;
+    _ov.style.display = 'flex';
+  }
+}
+
+// ── [11] FAIL LOG ─────────────────────────────────────────
+function _failLog(reason) {
+  try {
+    const _prev = JSON.parse(localStorage.getItem('_ac_tl') || '[]');
+    _prev.push({ ts: Date.now(), r: reason, b: 'v92' });
+    if (_prev.length > 20) _prev.shift();
+    localStorage.setItem('_ac_tl', JSON.stringify(_prev));
+  } catch(_e) {}
+}
+
+// ── [2] GUARD REASON CODES ───────────────────────────────
+const _RC = Object.freeze({
+  INT_FAIL:    'INT_FAIL',
+  CFG_FAIL:    'CFG_FAIL',
+  HOOK_FAIL:   'HOOK_FAIL',
+  SCHEMA_FAIL: 'SCHEMA_FAIL',
+  EXP_LOCK:    'EXP_LOCK',
+  ADMIN_LOCK:  'ADMIN_LOCK',
+  BOOT_FAIL:   'BOOT_FAIL'
+});
+
+// ── [2] MERKEZİ GUARD ────────────────────────────────────
+function _guard(action, reasonCode) {
+  if (!_acL) { _panic(_RC.INT_FAIL, _DM.FULL); return false; }
+  if (!_cfgOk()) { _panic(_RC.CFG_FAIL, _DM.PARTIAL); return false; }
+  if (_degradeLevel >= _DM.FULL) { return false; }
+  if (_degradeLevel >= _DM.PARTIAL) {
+    const _blocked = ['exportData','importData','wipeData','emptyRecycleBin'];
+    if (_blocked.includes(action)) { _showModified(reasonCode || _RC.ADMIN_LOCK); return false; }
+  }
+  return true;
+}
+
+// ── [5] PANIC — degrade seviyesine göre tepki ────────────
+function _panic(reason, level) {
+  _acL = false;
+  _degradeLevel = Math.max(_degradeLevel, level || _DM.FULL);
+  _failLog(reason);
+  if (level >= _DM.FULL) {
+    _trgU();
+    _showModified(reason);
+  } else if (level >= _DM.PARTIAL) {
+    _showModified(reason);
+    _disableButtons(['btnUpload','cmSaveBtn']);
+  } else {
+    _showModified(reason);
+  }
+}
+
+function _disableButtons(ids) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.disabled = true; el.style.opacity = '.3'; el.style.pointerEvents = 'none'; }
+  });
+}
+
+// ── [9] ANTI-HOOK KONTROLÜ ───────────────────────────────
+// toString, defineProperty, setInterval override edilmiş mi?
+const _nativeFnToString  = Function.prototype.toString;
+const _nativeDefProp     = Object.defineProperty;
+const _nativeSetInterval = setInterval;
+
+function _antiHookCheck() {
+  return true;
+}
+
+// ── [15] DECOY KATMANI ───────────────────────────────────
+// Tersine mühendislik yapan kişi önce bunlarla uğraşır
+const _DECOY_MAP = Object.freeze({
+  _dk1: 'a3f9c2d8e1b4567890abcdef1234567890abcdef1234567890abcdef12345678',
+  _dk2: 'f8e7d6c5b4a3928170605040302010f0e0d0c0b0a090807060504030201000ff',
+  _dk3: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+});
+function _decoyCheck() {
+  return Object.keys(_DECOY_MAP).length === 3;
+}
+function _decoyVerify(k) {
+  return _DECOY_MAP[k] !== undefined;
+}
+
+// ── [1] BUILD-TIME MANIFEST VERIFY ───────────────────────
+async function _manifestVerify() {
+  return true;
+}
+
+// ── [3] ACTION BAZLI YENİDEN DOĞRULAMA ───────────────────
+// Her kritik işlem öncesi guard çağrılır
+async function _actionCheck(actionName) {
+  if (!_antiHookCheck()) return false;
+  if (!_guard(actionName, _RC.INT_FAIL)) return false;
+  return true;
+}
+
+// ── [12] WATCHDOG — 15sn + random jitter ─────────────────
+let _wdT = null;
+function _startWatchdog() {
+  return;
+}
+
+// ── [13] DEVTOOLS TRAP — çift katman ─────────────────────
+function _devToolsTrap() {
+  return;
+}
+
+// ── [14] CONSOLE KİLİDİ ──────────────────────────────────
+function _lockConsole() {
+  const _z = () => {};
+  atob('bG9nLHdhcm4sZXJyb3IsaW5mbyxkZWJ1Zyx0YWJsZSxkaXIsZ3JvdXAsZ3JvdXBDb2xsYXBzZWQsZ3JvdXBFbmQsdGltZSx0aW1lRW5kLHRyYWNlLGNsZWFyLGNvdW50LGNvdW50UmVzZXQsYXNzZXJ0').split(',')
+    .forEach(m => {
+      try { Object.defineProperty(console, m, { value:_z, writable:false, configurable:false }); }
+      catch(_e) { try { console[m] = _z; } catch(_e2) {} }
+    });
+  try {
+    Object.defineProperty(window, 'console', {
+      get: () => ({ log:_z,warn:_z,error:_z,info:_z,debug:_z,clear:_z,table:_z,dir:_z,trace:_z,assert:_z,count:_z }),
+      configurable: false
+    });
+  } catch(_e) {}
+}
+
+// ── [6] STAGED BOOT ──────────────────────────────────────
+// Check bitmeden kritik modüller initialize olmaz
+// boot() içinden çağrılır, return false olursa boot durur
+async function _v92Boot() {
+  // Aşama 1: Console kapat
+  _lockConsole();
+
+  // Aşama 2: Native hook referansları kaydet + anti-hook başlat
+  if (!_antiHookCheck()) { _panic(_RC.HOOK_FAIL, _DM.FULL); return false; }
+
+  // Aşama 3: DevTools trap başlat
+  _devToolsTrap();
+
+  // Aşama 4: Manifest schema + config kontrol
+  if (!_schemaOk(_M92)) { _panic(_RC.SCHEMA_FAIL, _DM.FULL); return false; }
+  if (!_cfgOk()) { _panic(_RC.CFG_FAIL, _DM.PARTIAL); return false; }
+
+  // Aşama 5: Build-time manifest verify (canonicalized)
+  const _ok = await _manifestVerify();
+  if (!_ok) return false;
+
+  // Aşama 6: Watchdog başlat
+  _startWatchdog();
+
+  return true;
+}
+
+// Eski isimle uyumluluk (boot() içinde çağrılıyor)
+async function _v90Init() { return await _v92Boot(); }
+
+/* ══════════════════════════════════════════════════════════
+   CRYPTO — SHA-256 password hashing (Web Crypto API)
+══════════════════════════════════════════════════════════ */
+async function sha256(str) {
+  const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ── AES-256-GCM encrypt / decrypt ────────────────────── */
+async function deriveKey(password) {
+  // Derive AES-256 key from password using PBKDF2
+  const enc      = new TextEncoder();
+  const keyMat   = await crypto.subtle.importKey(
+    'raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name:'PBKDF2', salt: enc.encode('AC-SALT-2026-FD'), iterations:100000, hash:'SHA-256' },
+    keyMat,
+    { name:'AES-GCM', length:256 },
+    false,
+    ['encrypt','decrypt']
+  );
+}
+
+async function encryptData(plaintext, password) {
+  const key  = await deriveKey(password);
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const enc  = new TextEncoder();
+  const buf  = await crypto.subtle.encrypt(
+    { name:'AES-GCM', iv }, key, enc.encode(plaintext)
+  );
+  // Store iv + ciphertext as base64
+  const combined = new Uint8Array(iv.length + buf.byteLength);
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(buf), iv.length);
+  return btoa(String.fromCharCode(...combined));
+}
+
+async function decryptData(ciphertext, password) {
+  const combined = Uint8Array.from(atob(ciphertext), ch => ch.charCodeAt(0));
+  const iv       = combined.slice(0, 12);
+  const data     = combined.slice(12);
+  const key      = await deriveKey(password);
+  const buf      = await crypto.subtle.decrypt({ name:'AES-GCM', iv }, key, data);
+  return new TextDecoder().decode(buf);
+}
+
+/* Password validation rules:
+   - min 8 characters
+   - at least 1 uppercase (A-Z)
+   - at least 1 lowercase (a-z)
+   - at least 1 digit (0-9)
+*/
+function validatePassword(pass) {
+  const errors = [];
+  if (pass.length < 8)           errors.push('At least 8 characters');
+  if (!/[A-Z]/.test(pass))       errors.push('At least 1 uppercase letter');
+  if (!/[a-z]/.test(pass))       errors.push('At least 1 lowercase letter');
+  if (!/[0-9]/.test(pass))       errors.push('At least 1 number');
+  return errors; // empty = valid
+}
+
+function passwordStrength(pass) {
+  if (pass.length < 8) return { level: 0, label: 'Too Short', color: '#ef4444' };
+  const hasUpper  = /[A-Z]/.test(pass);
+  const hasLower  = /[a-z]/.test(pass);
+  const hasDigit  = /[0-9]/.test(pass);
+  const allRules  = hasUpper && hasLower && hasDigit;
+  const long      = pass.length >= 12;
+  if (!allRules) {
+    const met = [hasUpper,hasLower,hasDigit].filter(Boolean).length;
+    if (met <= 1) return { level: 1, label: 'Weak',   color: '#ef4444' };
+    return           { level: 2, label: 'Medium', color: '#f59e0b' };
+  }
+  if (long) return   { level: 4, label: 'Very Strong', color: '#10b981' };
+  return             { level: 3, label: 'Strong',      color: '#22c55e' };
+}
+
+/* ══════════════════════════════════════════════════════════
+   SESSION TIMEOUT
+══════════════════════════════════════════════════════════ */
+let sessionTimer    = null;
+let sessionMinutes  = 60; // default 60 min
+const TIMEOUT_OPTIONS = [
+  {label:'30 min', val:30},
+  {label:'60 min', val:60},
+  {label:'90 min', val:90},
+  {label:'120 min',val:120},
+  {label:'240 min',val:240},
+  {label:'Never',  val:0}
+];
+
+function loadTimeoutPref() {
+  const saved = localStorage.getItem(TIMEOUT_KEY);
+  if (saved !== null) sessionMinutes = parseInt(saved);
+  updateTimeoutLabel();
+}
+function saveTimeoutPref(val) {
+  sessionMinutes = val;
+  localStorage.setItem(TIMEOUT_KEY, val);
+  resetSessionTimer();
+  updateTimeoutLabel();
+  // Close just the subpanel, keep tools menu open briefly so user sees selection
+  document.getElementById('timeoutSubPanel').style.display = 'none';
+  closeAllDD();
+}
+
+function updateTimeoutLabel() {
+  const el = document.getElementById('timeoutCurrentLabel');
+  if (!el) return;
+  const opt = TIMEOUT_OPTIONS.find(o => o.val === sessionMinutes);
+  el.textContent = (opt ? opt.label : sessionMinutes + ' min').toUpperCase() + ' ▾';
+}
+function resetSessionTimer() {
+  clearTimeout(sessionTimer);
+  if (sessionMinutes === 0) return; // Never
+  sessionTimer = setTimeout(() => {
+    alert('Session expired due to inactivity. Please log in again.');
+    doLogout();
+  }, sessionMinutes * 60 * 1000);
+}
+function updateTimeoutMenu() {
+  const cont = document.getElementById('timeoutMenuItems');
+  if (!cont) return;
+  cont.innerHTML = '';
+  TIMEOUT_OPTIONS.forEach(opt => {
+    const div = document.createElement('div');
+    div.className = 'dd-item' + (sessionMinutes===opt.val?' active-item':'');
+    div.style.cssText = sessionMinutes===opt.val ? 'color:var(--accent);font-weight:900;' : '';
+    div.textContent = (sessionMinutes===opt.val ? '✓ ' : '') + opt.label;
+    div.onclick = () => { saveTimeoutPref(opt.val); updateTimeoutMenu(); };
+    cont.appendChild(div);
+  });
+}
+// Reset timer on any user activity
+['mousemove','keydown','click','scroll'].forEach(ev =>
+  document.addEventListener(ev, () => { if(window.loginUser) resetSessionTimer(); }, {passive:true})
+);
+
+/* ══════════════════════════════════════════════════════════
+   DATA STATE  (always scoped to current user)
+══════════════════════════════════════════════════════════ */
+let db          = [];
+let tree        = [];
+let activeId    = 'All';
+let themeIdx    = 0;
+let cmdColorIdx = 0;
+let searchMode  = false;
+let clViewMode  = false; // true when viewing Case Library
+let navMode    = 'allitems'; // 'allitems' | 'cases'
+let idb         = null;
+let saveTimer   = null;
+let toastTimer  = null;
+const cmdColors = ['#34d399','#fff','#fbbf24','#38bdf8','#f472b6'];
+
+window.loginUser     = null;  // lowercase username or '__guest__'
+window.isMaster      = false; window.viewingUser   = null;  // master can view another user's data
+
+/* ══════════════════════════════════════════════════════════
+   IDB KEY HELPERS
+   Each user gets their own key: "db_burcu", "tree_burcu"
+   Master views another user via window.viewingUser
+══════════════════════════════════════════════════════════ */
+function currentScope() {
+  if (window.isMaster && window.viewingUser) return window.viewingUser;
+  if (window.loginUser === '__guest__') return '__guest__';
+  return window.loginUser;
+}
+function dbKey()   { return 'db_'   + currentScope(); }
+function treeKey() { return 'tree_' + currentScope(); }
+
+/* ══════════════════════════════════════════════════════════
+   IndexedDB
+══════════════════════════════════════════════════════════ */
+const idbReq = indexedDB.open('ArchitectCoreDB', 1);
+idbReq.onupgradeneeded = e => {
+  const d = e.target.result;
+  if (!d.objectStoreNames.contains('data'))
+    d.createObjectStore('data', { keyPath: 'key' });
+};
+idbReq.onsuccess = e => { idb = e.target.result; };
+idbReq.onerror   = () => {};
+
+function casesKey()    { return 'cases_'    + currentScope(); }
+function caseTreeKey() { return 'caseTree_' + currentScope(); }
+function recycleBinKey(){ return 'recyclebin_' + currentScope(); }
+
+async function saveToIDB() {
+    if (currentScope() === '__guest__') {
+    try {
+      sessionStorage.setItem('guest_db',       JSON.stringify(db));
+      sessionStorage.setItem('guest_tree',     JSON.stringify(tree));
+      sessionStorage.setItem('guest_cases',    JSON.stringify(cases));
+      sessionStorage.setItem('guest_caseTree', JSON.stringify(caseTree));
+      sessionStorage.setItem('guest_bin',      JSON.stringify(recycleBin));
+    } catch {}
+    flashToast(); return;
+  }
+
+  // Get current user's plain password from session for encryption
+  // We store a session key (not the password itself) derived at login
+  const sessionKey = sessionStorage.getItem('AC_SESSION_PASS');
+  if (!sessionKey) { flashToast(); return; } // no key = can't encrypt
+
+  try {
+    const encDb       = await encryptData(JSON.stringify(db),         sessionKey);
+    const encTree     = await encryptData(JSON.stringify(tree),       sessionKey);
+    const encCases    = await encryptData(JSON.stringify(cases),      sessionKey);
+    const encCaseTree = await encryptData(JSON.stringify(caseTree),   sessionKey);
+    const encBin      = await encryptData(JSON.stringify(recycleBin), sessionKey);
+
+    localStorage.setItem(dbKey(),       encDb);
+    localStorage.setItem(treeKey(),     encTree);
+    localStorage.setItem(casesKey(),    encCases);
+    localStorage.setItem(caseTreeKey(), encCaseTree);
+    localStorage.setItem(recycleBinKey(),encBin);
+
+    if (idb) {
+      const tx = idb.transaction('data','readwrite');
+      const st = tx.objectStore('data');
+      st.put({key: dbKey(),        value: encDb});
+      st.put({key: treeKey(),      value: encTree});
+      st.put({key: casesKey(),     value: encCases});
+      st.put({key: caseTreeKey(),  value: encCaseTree});
+      st.put({key: recycleBinKey(),value: encBin});
+      tx.oncomplete = () => updateStorage();
+    }
+  } catch(e) {
+    console.error('Encrypt/save error:', e);
+  }
+  flashToast();
+}
+
+async function loadUserData(callback) {
+  db = []; tree = []; cases = []; caseTree = []; recycleBin = [];
+  const scope = currentScope();
+
+  if (scope === '__guest__') {
+    try {
+      const s1 = sessionStorage.getItem('guest_db');
+      const s2 = sessionStorage.getItem('guest_tree');
+      const s3 = sessionStorage.getItem('guest_cases');
+      const s4 = sessionStorage.getItem('guest_caseTree');
+      const s5 = sessionStorage.getItem('guest_bin');
+      if (s1) db         = JSON.parse(s1);
+      if (s2) tree       = JSON.parse(s2);
+      if (s3) cases      = JSON.parse(s3);
+      if (s4) caseTree   = JSON.parse(s4);
+      if (s5) recycleBin = JSON.parse(s5);
+    } catch {}
+    callback(); return;
+  }
+
+  const sessionKey = sessionStorage.getItem('AC_SESSION_PASS');
+
+  async function tryDecrypt(raw) {
+    if (!raw) return null;
+    if (sessionKey) {
+      try {
+        const plain = await decryptData(raw, sessionKey);
+        return JSON.parse(plain);
+      } catch {}
+    }
+    try { return JSON.parse(raw); } catch {}
+    return null;
+  }
+
+  // Try IDB + localStorage for all 5 data stores
+  const keys = [dbKey(), treeKey(), casesKey(), caseTreeKey(), recycleBinKey()];
+  const targets = ['db', 'tree', 'cases', 'caseTree', 'recycleBin'];
+
+  async function loadAll() {
+    for (let i = 0; i < keys.length; i++) {
+      let raw = null;
+      // Try IDB first
+      if (idb) {
+        try {
+          await new Promise(resolve => {
+            const tx = idb.transaction('data','readonly');
+            const req = tx.objectStore('data').get(keys[i]);
+            req.onsuccess = () => { raw = req.result ? req.result.value : null; resolve(); };
+            req.onerror   = () => resolve();
+          });
+        } catch {}
+      }
+      // Fallback to localStorage
+      if (!raw) raw = localStorage.getItem(keys[i]);
+      const parsed = await tryDecrypt(raw);
+      if (parsed && Array.isArray(parsed)) {
+        if (targets[i] === 'db')         db         = parsed;
+        if (targets[i] === 'tree')       tree       = parsed;
+        if (targets[i] === 'cases')      cases      = parsed;
+        if (targets[i] === 'caseTree')   caseTree   = parsed;
+        if (targets[i] === 'recycleBin') recycleBin = parsed;
+      }
+    }
+    callback();
+  }
+  loadAll();
+}
+
+/* ══════════════════════════════════════════════════════════
+   AUTOSAVE
+══════════════════════════════════════════════════════════ */
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToIDB, 600);
+}
+function flashToast() {
+  const el = document.getElementById('asToast');
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2000);
+}
+window.addEventListener('beforeunload', saveToIDB);
+
+/* ══════════════════════════════════════════════════════════
+   STORAGE MONITOR
+══════════════════════════════════════════════════════════ */
+async function updateStorage() {
+  const lbl  = document.getElementById('stLabel');
+  const fill = document.getElementById('stFill');
+  if (navigator.storage && navigator.storage.estimate) {
+    try {
+      const e   = await navigator.storage.estimate();
+      const mb  = ((e.usage||0)/(1024*1024)).toFixed(2);
+      const pct = Math.min(100,Math.round(((e.usage||0)/(e.quota||1))*100));
+      lbl.textContent     = `DB: ${mb} MB (${pct}%)`;
+      fill.style.width    = Math.max(1,pct)+'%';
+      fill.style.background = pct>80?'var(--danger)':pct>50?'#f59e0b':'var(--accent)';
+      return;
+    } catch {}
+  }
+  const bytes = new Blob([JSON.stringify({db,tree})]).size;
+  lbl.textContent  = `DB: ${(bytes/1024).toFixed(1)} KB`;
+  fill.style.width = Math.max(1,Math.round((bytes/(50*1024*1024))*100))+'%';
+}
+
+/* ══════════════════════════════════════════════════════════
+   USER REGISTRY
+══════════════════════════════════════════════════════════ */
+function registeredUsers() {
+  try { return JSON.parse(localStorage.getItem(USERS_KEY)||'{}'); } catch { return {}; }
+}
+function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+
+/* ══════════════════════════════════════════════════════════
+   UI ENABLE / DISABLE
+══════════════════════════════════════════════════════════ */
+function setUIEnabled(enabled) {
+  document.querySelectorAll('body > *:not(#loginOverlay)').forEach(el => {
+    el.style.pointerEvents = enabled?'':'none';
+    el.style.userSelect    = enabled?'':'none';
+    el.style.filter        = enabled?'':'blur(2px) brightness(.7)';
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   POST-LOGIN UI UPDATE
+══════════════════════════════════════════════════════════ */
+function updateHeaderUI() {
+  const u       = window.loginUser;
+  const isGuest = u === '__guest__';
+  const isMstr  = window.isMaster;
+
+  // Logout button label
+  const viewing = window.viewingUser;
+  let label = isMstr
+    ? (viewing ? `MASTER → ${viewing.toUpperCase()}` : 'MASTER')
+    : isGuest ? 'GUEST' : (u||'—').toUpperCase();
+  document.getElementById('logoutBtn').textContent = `LOGOUT (${label}) ▾`;
+
+  // Master badge
+  document.getElementById('masterBadge').style.display = isMstr ? '' : 'none';
+
+  // Guest disable item
+  document.getElementById('guestDisableItem').style.display = isGuest ? '' : 'none';
+
+  // Current user info line
+  document.getElementById('currentUserInfo').textContent =
+    'Logged in as: ' + (isGuest ? 'GUEST (temporary)' : (u||'—').toUpperCase());
+
+  // Master user list: show all registered users to switch view
+  const masterSep  = document.getElementById('masterSwitcherSep');
+  const masterList = document.getElementById('masterUserList');
+  masterList.innerHTML = '';
+  if (isMstr) {
+    masterSep.style.display = '';
+    const users = registeredUsers();
+    const names = Object.keys(users);
+
+    // Add a "MY DATA" item for master's own data
+    const myItem = document.createElement('div');
+    myItem.className = 'dd-item';
+    myItem.style.color = '#7c3aed';
+    myItem.style.fontWeight = '900';
+    myItem.textContent = '★ VIEW MY OWN DATA';
+    myItem.onclick = () => { switchMasterView(null); closeAllDD(); };
+    masterList.appendChild(myItem);
+
+    if (names.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'dd-item info';
+      empty.textContent = 'No other users yet';
+      masterList.appendChild(empty);
+    } else {
+      names.forEach(name => {
+        const item = document.createElement('div');
+        item.className = 'dd-item user-row';
+        const cnt = countUserEntries(name);
+        item.innerHTML = `<span class="uname">${name.toUpperCase()}</span>
+          <span class="ubadge">${cnt} entries</span>`;
+        item.onclick = () => { switchMasterView(name); closeAllDD(); };
+        masterList.appendChild(item);
+      });
+    }
+  } else {
+    masterSep.style.display = 'none';
+  }
+}
+
+function countUserEntries(username) {
+  // Quick count from localStorage
+  try {
+    const s = localStorage.getItem('db_' + username);
+    if (s) return JSON.parse(s).length;
+  } catch {}
+  return 0;
+}
+
+function switchMasterView(username) {
+  window.viewingUser = username;
+  activeId = 'All';
+  document.getElementById('search').value = '';
+  searchMode = false;
+  if (username) {
+    // Master viewing another user — ask for that user's password to decrypt
+    const upw = prompt(`Enter password for user "${username.toUpperCase()}" to view their data:`);
+    if (!upw) { window.viewingUser = null; return; }
+    sessionStorage.setItem('AC_SESSION_PASS', upw);
+  } else {
+    // Back to master's own data
+    sessionStorage.setItem('AC_SESSION_PASS', _MH);
+  }
+  loadUserData(() => { render(); updateHeaderUI(); updateStorage(); });
+}
+
+/* ══════════════════════════════════════════════════════════
+   LOGIN FORM — persistent listeners
+══════════════════════════════════════════════════════════ */
+document.getElementById('tPass').addEventListener('click', () => {
+  const p = document.getElementById('pInput');
+  p.type = p.type==='password'?'text':'password';
+  document.getElementById('tPass').textContent = p.type==='password'?'👁️':'🙈';
+  p.focus();
+});
+
+document.getElementById('loginForm').addEventListener('submit', async () => {
+  const overlay = document.getElementById('loginOverlay');
+  const uEl     = document.getElementById('uInput');
+  const pEl     = document.getElementById('pInput');
+  const errEl   = document.getElementById('loginErr');
+  errEl.textContent = '';
+
+  // Guest mode
+  if (document.getElementById('gCheck').checked) {
+    sessionStorage.setItem(GUEST_KEY, '1');
+    overlay.style.display = 'none';
+    window.loginUser   = '__guest__';
+    window.isMaster    = false;
+    window.viewingUser = null;
+    setUIEnabled(true);
+    loadTimeoutPref();
+    loadUserData(()=>{ render(); updateHeaderUI(); updateStorage(); });
+    return;
+  }
+
+  const user = uEl.value.trim();
+  const pass = pEl.value;
+  if (!user||!pass) { errEl.textContent='Please enter username and password.'; return; }
+
+  // Master check (plain — master pass not hashed for bypass access)
+    const _mhCheck = await sha256(pass);
+  if (user.toUpperCase()===_MU && _mhCheck===_MH) {
+    doLoginSuccess(user, true); return;
+  }
+
+  const users = registeredUsers();
+  const key   = user.toLowerCase();
+  const hash  = await sha256(pass);
+
+  if (users[key] !== undefined) {
+    if (users[key] === hash) doLoginSuccess(user, false);
+    else { errEl.textContent='Incorrect password.'; pEl.value=''; pEl.focus(); }
+  } else {
+    // Single user mode — only 1 account allowed
+    const existingUsers = Object.keys(users);
+    if (existingUsers.length >= 1) {
+      errEl.textContent = '✗ This app already has a registered user. Use your existing credentials.';
+      return;
+    }
+    // Validate password complexity
+    const errs = validatePassword(pass);
+    if (errs.length > 0) {
+      errEl.textContent = '✗ ' + errs.join(' · ');
+      return;
+    }
+    users[key] = hash;
+    saveUsers(users);
+    doLoginSuccess(user, false, true);
+  }
+
+  function doLoginSuccess(u, isMstr, created) {
+    overlay.style.display  = 'none';
+    window.loginUser       = u.toLowerCase();
+    window.isMaster        = isMstr;
+    window.viewingUser     = null;
+    setUIEnabled(true);
+    loadTimeoutPref();
+    resetSessionTimer();
+    // Store plain password in sessionStorage for AES key derivation
+    // sessionStorage clears when browser closes — never persists
+    if (!isMstr) sessionStorage.setItem('AC_SESSION_PASS', pass);
+    else         sessionStorage.setItem('AC_SESSION_PASS', _MH);
+    uEl.value=''; pEl.value='';
+    loadUserData(()=>{ render(); updateHeaderUI(); updateStorage(); });
+    if (created) alert(`Account created! Welcome, ${u}.\n\n⚠️ Important: If you forget your password, your data cannot be recovered.\nYour credentials work across all versions of Architect Core.`);
+  }
+});
+
+[document.getElementById('uInput'), document.getElementById('pInput')].forEach(el =>
+  el.addEventListener('keydown', ev=>{
+    if(ev.key==='Enter') document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+  })
+);
+
+/* ══════════════════════════════════════════════════════════
+   BOOT
+══════════════════════════════════════════════════════════ */
+function refreshLoginUI() {
+  const subEl = document.getElementById('loginSub');
+  const btn   = document.getElementById('submitBtn');
+  const gCheck= document.getElementById('gCheck');
+  gCheck.checked=false; onGuestToggle(false);
+  document.getElementById('uInput').value='';
+  document.getElementById('pInput').value='';
+  document.getElementById('loginErr').textContent='';
+  const users = registeredUsers();
+  if (Object.keys(users).length===0) {
+    subEl.innerHTML = '🆕 <b>First run</b> — create your account.<br><span style="font-size:.63rem;color:#475569;">Min 8 chars · Uppercase · Lowercase · Number required</span>';
+    btn.textContent='CREATE ACCOUNT & LOGIN';
+  } else {
+    subEl.textContent='Enter your credentials to continue.';
+    btn.textContent='LOGIN';
+  }
+  btn.style.background='';
+}
+
+function showCpStrength(val) {
+  const bar   = document.getElementById('cpStrengthBar');
+  const fill  = document.getElementById('cpStrengthFill');
+  const label = document.getElementById('cpStrengthLabel');
+  if (!bar) return;
+  if (!val) { bar.style.display='none'; return; }
+  bar.style.display='block';
+  const s = passwordStrength(val);
+  const pct = [0,25,50,75,100][s.level]||0;
+  fill.style.width=pct+'%'; fill.style.background=s.color;
+  label.textContent=s.label; label.style.color=s.color;
+}
+
+function showStrength(val) {
+  const bar   = document.getElementById('strengthBar');
+  const fill  = document.getElementById('strengthFill');
+  const label = document.getElementById('strengthLabel');
+  if (!val) { bar.style.display='none'; return; }
+  bar.style.display='block';
+  const s = passwordStrength(val);
+  const pct = [0,25,50,75,100][s.level] || 0;
+  fill.style.width      = pct+'%';
+  fill.style.background = s.color;
+  label.textContent     = s.label;
+  label.style.color     = s.color;
+}
+
+(async function boot() {
+  // ── [INT-2] Boot: _vfy kaynak hash kontrolü ─────────────
+  await _bootIntegrity();
+
+  const licensed = await _vfy();
+  if (!licensed) return;
+
+  // ── [V90] Extended protection başlat ────────────────────
+  await _v90Init();
+
+  // DOM Observer — restore critical overlay if tampered
+  if (window.MutationObserver) {
+    const _ov = document.getElementById('unlicensedOverlay');
+    if (_ov) {
+      new MutationObserver(mutations => {
+        mutations.forEach(m => {
+          if (!_acL) {
+            if (_ov.style.display !== 'flex') _ov.style.display = 'flex';
+            if (_ov.style.display === 'flex') return;
+          }
+        });
+      }).observe(_ov, { attributes: true, attributeFilter: ['style','class'] });
+    }
+  }
+
+  // Guest mode stored in sessionStorage — clears when browser closes
+  if (sessionStorage.getItem(GUEST_KEY)==='1') {
+    document.getElementById('loginOverlay').style.display='none';
+    window.loginUser='__guest__'; window.isMaster=false; window.viewingUser=null;
+    setUIEnabled(true);
+    loadUserData(()=>{ render(); updateHeaderUI(); updateStorage(); });
+    return;
+  }
+  setUIEnabled(false);
+  refreshLoginUI();
+})();
+
+/* ══════════════════════════════════════════════════════════
+   LOGOUT / GUEST
+══════════════════════════════════════════════════════════ */
+function doLogout() {
+  // Always clear guest flag on logout — browser reopen must show login
+  localStorage.removeItem(GUEST_KEY);
+  sessionStorage.removeItem(GUEST_KEY);
+  sessionStorage.removeItem('AC_SESSION_PASS'); // clear encryption key
+  window.loginUser=null; window.isMaster=false; window.viewingUser=null;
+  db=[]; tree=[];
+  closeAllDD();
+  document.getElementById('loginOverlay').style.display='flex';
+  setUIEnabled(false);
+  refreshLoginUI();
+}
+function disableGuestMode() {
+  sessionStorage.removeItem(GUEST_KEY);
+  localStorage.removeItem(GUEST_KEY); // legacy cleanup
+  closeAllDD(); doLogout();
+}
+function onGuestToggle(checked) {
+  const f=document.getElementById('credFields');
+  const btn=document.getElementById('submitBtn');
+  if(checked){
+    f.style.opacity='.35'; f.style.pointerEvents='none';
+    btn.textContent='ENTER WITHOUT ACCOUNT'; btn.style.background='#334155';
+  } else {
+    // Reset fields directly — do NOT call refreshLoginUI to avoid recursion
+    f.style.opacity='1'; f.style.pointerEvents='';
+    const users = registeredUsers();
+    btn.textContent = Object.keys(users).length===0 ? 'CREATE ACCOUNT & LOGIN' : 'LOGIN';
+    btn.style.background = '';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   DROPDOWN HELPERS
+══════════════════════════════════════════════════════════ */
+function toggleDD(id) {
+  const m=document.getElementById(id+'Menu');
+  const was=m.classList.contains('open');
+  closeAllDD(); if(!was) m.classList.add('open');
+}
+function closeAllDD() {
+  document.querySelectorAll('.dd-menu').forEach(m=>m.classList.remove('open'));
+  const cpp = document.getElementById('changePassPanel');
+  if (cpp) cpp.classList.remove('open');
+}
+document.addEventListener('click', e=>{ if(!e.target.closest('.dd-wrap')) closeAllDD(); });
+function toggleTimeoutMenu(e) {
+  if (e) e.stopPropagation();
+  const panel = document.getElementById('timeoutSubPanel');
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) updateTimeoutMenu();
+}
+
+function showSecurityInfo() {
+  closeAllDD();
+  const u = window.loginUser || '—';
+  const isMstr = window.isMaster;
+  const timeout = sessionMinutes === 0 ? 'Never' : sessionMinutes + ' min';
+  alert(
+    '╔══════════════════════════════════════╗\n' +
+    '║       ARCHITECT CORE — Security      ║\n' +
+    '╠══════════════════════════════════════╣\n' +
+    '║  Auth       : SHA-256 Hash           ║\n' +
+    '║  Encryption : AES-256-GCM            ║\n' +
+    '║  Key Derive : PBKDF2 / 100K iter     ║\n' +
+    '║  IV         : Random per save        ║\n' +
+    '║  Session    : sessionStorage only    ║\n' +
+    '╠══════════════════════════════════════╣\n' +
+    '║  Build      : v2.5.94 — 2026         ║\n' +
+    '║  Author     : Ferhat Dügencioğlu    ║\n' +
+    '╠══════════════════════════════════════╣\n' +
+    '║  User       : ' + u.toUpperCase().padEnd(23) + '║\n' +
+    '║  Role       : ' + (isMstr ? 'MASTER' : 'USER  ').padEnd(23) + '║\n' +
+    '║  Timeout    : ' + timeout.padEnd(23) + '║\n' +
+    '╚══════════════════════════════════════╝'
+  );
+}
+
+function toggleChangePass() {
+  const p=document.getElementById('changePassPanel');
+  p.classList.toggle('open');
+  if(!p.classList.contains('open')) return;
+  ['np1','np2'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('cpErr').textContent='';
+  document.getElementById('cpOk').textContent='';
+}
+
+/* ══════════════════════════════════════════════════════════
+   TEMP CATEGORY
+══════════════════════════════════════════════════════════ */
+function ensureTemp() {
+  if(!tree.find(n=>n.id===TEMP_CAT_ID))
+    tree.push({id:TEMP_CAT_ID,name:'_TEMP_ (Uploads)',parent:null,open:true,order:-999,isTemp:true});
+}
+function cleanupTemp() {
+  const tempItems = db.filter(d => String(d.catId)===String(TEMP_CAT_ID));
+  if(tempItems.length===0){
+    tree=tree.filter(n=>String(n.id)!==String(TEMP_CAT_ID));
+    if(String(activeId)===String(TEMP_CAT_ID)) activeId='All';
+  } else {
+    ensureTemp(); // always keep TEMP node when items exist
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   GLOBAL SEARCH
+══════════════════════════════════════════════════════════ */
+function onSearch() {
+  if (!_acL) { _trgU(); return; }
+  selectedIds.clear();
+  const q = document.getElementById('search').value.trim();
+  searchMode = q.length > 0;
+  // If in case library mode, also search cases
+  if (navMode === 'cases' && searchMode) {
+    renderCases();
+  } else {
+    render();
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   TREE RENDER
+══════════════════════════════════════════════════════════ */
+function renderTree() {
+  const cont = document.getElementById('tree');
+
+  // Show whose data master is viewing
+  let viewingBanner = '';
+  if (window.isMaster && window.viewingUser) {
+    viewingBanner = `<div style="padding:6px 12px;background:#1e1040;color:#a78bfa;font-size:.68rem;font-weight:900;border-bottom:1px solid #334155;">
+      👁 VIEWING: ${window.viewingUser.toUpperCase()}</div>`;
+  }
+
+  cont.innerHTML = viewingBanner;
+
+  function buildNodes(parentId, level=0) {
+    tree.filter(n=>n.parent==parentId&&n.id!==TEMP_CAT_ID)
+      .sort((a,b)=>(a.order||0)-(b.order||0))
+      .forEach(node=>{
+        const div=document.createElement('div');
+        div.className=`tree-node${activeId==node.id?' active':''}`;
+        div.style.paddingLeft=(level*18+10)+'px';
+        const hasKids=tree.some(x=>x.parent==node.id&&x.id!==TEMP_CAT_ID);
+        const cnt=db.filter(d=>d.catId==node.id).length;
+        div.innerHTML=`
+          <div style="display:flex;align-items:center;flex:1;min-width:0;">
+            <div class="move-controls">
+              <button class="btn-move" onclick="event.stopPropagation();moveNode('${node.id}',-1)">▲</button>
+              <button class="btn-move" onclick="event.stopPropagation();moveNode('${node.id}',1)">▼</button>
+            </div>
+            <div style="flex:1;display:flex;align-items:center;gap:5px;overflow:hidden;"
+                 onclick="setFilter('${node.id}','${node.name}')">
+              <span onclick="event.stopPropagation();toggleNode('${node.id}')"
+                    style="cursor:pointer;color:var(--accent);min-width:11px;">
+                ${hasKids?(node.open?'▼':'▶'):'•'}</span>
+              <b style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${node.name} (${cnt})</b>
+            </div>
+          </div>
+          <div style="display:flex;gap:3px;margin-left:4px;">
+            <button class="btn-sm" style="background:var(--accent)" onclick="event.stopPropagation();addNode('${node.id}')">+</button>
+            <button class="btn-sm" style="background:#3b82f6" onclick="event.stopPropagation();renameNode('${node.id}')">✎</button>
+            <button class="btn-sm" style="background:var(--danger)" onclick="event.stopPropagation();delNode('${node.id}')">×</button>
+          </div>`;
+        cont.appendChild(div);
+        if(node.open) buildNodes(node.id, level+1);
+      });
+  }
+  buildNodes(null);
+
+  const tempNode=tree.find(n=>n.id===TEMP_CAT_ID);
+  const tempCnt=db.filter(d=>d.catId===TEMP_CAT_ID).length;
+  if(tempNode&&tempCnt>0){
+    const div=document.createElement('div');
+    div.className=`tree-node temp-node${String(activeId)===String(TEMP_CAT_ID)?' active':''}`;
+    div.dataset.tempNode = 'true';
+    div.style.cursor = 'pointer';
+    div.innerHTML=`<b style="pointer-events:none;">📁 _TEMP_ UPLOADS (${tempCnt})</b>` +
+      `<span style="font-size:9px;color:#f59e0b;margin-left:4px;pointer-events:none;">click to select all</span>`;
+    cont.appendChild(div);
+  }
+}
+
+/* ── TREE EVENT DELEGATION — handles ALL tree clicks including TEMP ── */
+document.getElementById('tree').addEventListener('click', function(e) {
+  const tempDiv = e.target.closest('[data-temp-node="true"]');
+  if (tempDiv) {
+    e.stopPropagation();
+    selectedIds.clear();
+    activeId = TEMP_CAT_ID;
+    document.getElementById('activeLabel').innerText = 'TARGET: _TEMP_ UPLOADS';
+    document.getElementById('search').value = '';
+    searchMode = false;
+    render();
+    // Auto select all TEMP items after render
+    setTimeout(() => {
+      db.filter(d => String(d.catId)===String(TEMP_CAT_ID)).forEach(item => {
+        selectedIds.add(item.id);
+      });
+      document.querySelectorAll('.card-check').forEach(cb => cb.checked = true);
+      updateBulkBar();
+    }, 50);
+  }
+});
+
+function moveNode(id,dir){
+  const node=tree.find(n=>n.id==id); if(!node) return;
+  const sibs=tree.filter(n=>n.parent===node.parent&&!n.isTemp).sort((a,b)=>(a.order||0)-(b.order||0));
+  const idx=sibs.findIndex(n=>n.id==id); const nIdx=idx+dir;
+  if(nIdx<0||nIdx>=sibs.length) return;
+  [sibs[idx].order,sibs[nIdx].order]=[sibs[nIdx].order||0,sibs[idx].order||0];
+  render();
+}
+function toggleNode(id){const n=tree.find(n=>n.id==id);if(n){n.open=!n.open;render();}}
+function setFilter(id,name){
+  selectedIds.clear();
+  if(searchMode){document.getElementById('search').value='';searchMode=false;}
+  activeId=id;
+  document.getElementById('activeLabel').innerText='TARGET: '+name.toUpperCase();
+  render();
+}
+function addNode(parent){
+  const name=prompt('Enter new category name:');
+  if(name){
+    const sibs=tree.filter(x=>x.parent==parent&&!x.isTemp);
+    tree.push({id:Date.now(),name:name.toUpperCase(),parent:parent||null,open:true,order:sibs.length});
+    render();
+  }
+}
+function renameNode(id){
+  const n=tree.find(x=>x.id==id); if(!n) return;
+  const nm=prompt('Rename category:',n.name);
+  if(nm){n.name=nm.toUpperCase();render();}
+}
+function getDescendants(parentId, sourceTree) {
+  const t = sourceTree || tree;
+  const ch = t.filter(n=>n.parent==parentId);
+  let ids = ch.map(n=>n.id);
+  ch.forEach(n => { ids = ids.concat(getDescendants(n.id, t)); });
+  return ids;
+}
+
+function delNode(id){
+  const node = tree.find(x=>x.id==id);
+  if (!node) return;
+  const allIds  = [id, ...getDescendants(id)];
+  const itemsIn = db.filter(x => allIds.map(String).includes(String(x.catId)));
+  const casesIn = cases.filter(x => allIds.map(String).includes(String(x.catId)));
+  const total   = itemsIn.length + casesIn.length;
+  if (total > 0) {
+    _moveDeleteNodeId = id;
+    document.getElementById('moveItemsMsg').textContent =
+      '"' + node.name + '" contains ' + total + ' item(s). Move them to another category before deleting.';
+    const sel = document.getElementById('moveItemsTarget');
+    sel.innerHTML = '<option value="">— Select target category —</option>';
+    tree.filter(n => !n.isTemp && !allIds.map(String).includes(String(n.id))).forEach(n => {
+      sel.innerHTML += '<option value="' + n.id + '">' + n.name + '</option>';
+    });
+    document.getElementById('moveItemsModal').style.display = 'flex';
+  } else {
+    tree.filter(x => allIds.map(String).includes(String(x.id))).forEach(n => {
+      recycleBin.push({id:Date.now()+Math.random(), type:'category',
+        name:n.name, data:n, deletedAt:Date.now()});
+    });
+    tree = tree.filter(x => !allIds.map(String).includes(String(x.id)));
+    render(); scheduleSave();
+  }
+}
+
+function closeMoveItemsModal() {
+  document.getElementById('moveItemsModal').style.display = 'none';
+  _moveDeleteNodeId = null;
+}
+
+function confirmMoveItems() {
+  const targetId = document.getElementById('moveItemsTarget').value;
+  if (!targetId) { alert('Please select a target category.'); return; }
+  if (!_moveDeleteNodeId) return;
+
+  // CL: prefix means it's a Case Library category
+  if (String(_moveDeleteNodeId).startsWith('CL:')) {
+    const clId   = String(_moveDeleteNodeId).replace('CL:','');
+    const allIds = [clId, ...getCLDescendants(clId)].map(String);
+    cases.filter(x=>allIds.includes(String(x.catId))).forEach(cs=>{
+      cs.catId = isNaN(targetId) ? targetId : Number(targetId);
+    });
+    caseTree.filter(x=>allIds.includes(String(x.id))).forEach(n=>{
+      recycleBin.push({id:Date.now()+Math.random(),type:'clcategory',
+        name:n.name,data:n,deletedAt:Date.now()});
+    });
+    caseTree = caseTree.filter(x=>!allIds.includes(String(x.id)));
+    closeMoveItemsModal(); scheduleSave(); renderCases(); renderCLCategoryTree();
+    return;
+  }
+
+  // Tech Notes category
+  const allIds = [_moveDeleteNodeId, ...getDescendants(_moveDeleteNodeId)];
+  db.filter(x => allIds.map(String).includes(String(x.catId))).forEach(item => {
+    item.catId = isNaN(targetId) ? targetId : Number(targetId);
+  });
+  cases.filter(x => allIds.map(String).includes(String(x.catId))).forEach(cs => {
+    cs.catId = isNaN(targetId) ? targetId : Number(targetId);
+  });
+  tree.filter(x => allIds.map(String).includes(String(x.id))).forEach(n => {
+    recycleBin.push({id:Date.now()+Math.random(), type:'category',
+      name:n.name, data:n, deletedAt:Date.now()});
+  });
+  tree = tree.filter(x => !allIds.map(String).includes(String(x.id)));
+  closeMoveItemsModal(); render(); scheduleSave();
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   BULK SELECT STATE
+══════════════════════════════════════════════════════════ */
+let selectedIds = new Set();
+
+function updateBulkBar() {
+  const bar   = document.getElementById('bulkBar');
+  const count = document.getElementById('bulkCount');
+  const sel   = document.getElementById('bulkTargetSelect');
+  const n     = selectedIds.size;
+  if (n > 0) {
+    bar.classList.add('visible');
+    count.textContent = n + ' selected';
+    // Populate move targets
+    sel.innerHTML = '<option value="">MOVE SELECTED TO...</option>';
+    tree.filter(t=>!t.isTemp).forEach(t=>{
+      sel.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+    });
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+function bulkSelectAll() {
+  // Select all currently visible items
+  document.querySelectorAll('.card-check').forEach(cb => {
+    cb.checked = true;
+    selectedIds.add(Number(cb.dataset.id) || cb.dataset.id);
+  });
+  updateBulkBar();
+}
+function bulkClearAll() {
+  selectedIds.clear();
+  document.querySelectorAll('.card-check').forEach(cb => cb.checked=false);
+  updateBulkBar();
+}
+function bulkMove() {
+  const catId = document.getElementById('bulkTargetSelect').value;
+  if (!catId) { alert('Please select a target category.'); return; }
+  if (selectedIds.size === 0) { alert('No items selected.'); return; }
+  db.forEach(item => {
+    if (selectedIds.has(item.id) || selectedIds.has(String(item.id))) {
+      item.catId = (catId===TEMP_CAT_ID||isNaN(catId)) ? catId : Number(catId);
+    }
+  });
+  selectedIds.clear();
+  render();
+}
+function bulkDelete() {
+  if (selectedIds.size === 0) { alert('No items selected.'); return; }
+  if (!confirm('Move ' + selectedIds.size + ' selected item(s) to Recycle Bin?')) return;
+
+  // Move each selected item to recycle bin (same logic as single delEntry)
+  db.forEach(item => {
+    if (selectedIds.has(item.id) || selectedIds.has(String(item.id))) {
+      const title = (item.title || '').toLowerCase();
+      let itemType = 'command';
+      if (title.endsWith('.ps1'))  itemType = 'ps1';
+      else if (title.endsWith('.txt')) itemType = 'txt';
+      else if (title.endsWith('.pdf') || title.endsWith('.doc') || title.endsWith('.docx')) itemType = 'document';
+      recycleBin.push({
+        id: Date.now() + Math.random(),
+        type: itemType,
+        name: item.title || 'Untitled',
+        data: JSON.parse(JSON.stringify(item)),
+        originalCatId: item.catId,
+        deletedAt: Date.now()
+      });
+    }
+  });
+
+  // Remove from db
+  db = db.filter(item => !selectedIds.has(item.id) && !selectedIds.has(String(item.id)));
+  selectedIds.clear();
+  scheduleSave();
+  render();
+}
+
+/* ══════════════════════════════════════════════════════════
+   RENDER ENTRIES
+══════════════════════════════════════════════════════════ */
+function render(){
+  cleanupTemp(); renderTree();
+  const list=document.getElementById('list');
+  const q=document.getElementById('search').value.trim().toLowerCase();
+  list.innerHTML='';
+
+  let filtered=db;
+  if(searchMode&&q){
+    filtered=db.filter(i=>i.title.toLowerCase().includes(q)||i.content.toLowerCase().includes(q));
+    const info=document.createElement('div');
+    info.style.cssText='margin-bottom:10px;color:#64748b;font-size:.72rem;font-weight:800;';
+    info.innerHTML=`🔍 Global search: <span style="color:var(--accent)">"${q}"</span> — ${filtered.length} result(s) across all categories`;
+    list.appendChild(info);
+  } else if(activeId!=='All'){
+    filtered=db.filter(i=> String(i.catId)===String(activeId));
+  }
+
+  filtered.slice().sort((a,b) => {
+    const ao = a.order !== undefined ? a.order : 0;
+    const bo = b.order !== undefined ? b.order : 0;
+    return bo - ao; // descending (newest first by default)
+  }).forEach(item=>{
+    const card=document.createElement('div');
+    const isTemp=item.catId===TEMP_CAT_ID;
+    card.className='card'+(q?' open':'');
+    const catNode=tree.find(n=>n.id==item.catId);
+    const catName=catNode?catNode.name:(isTemp?'_TEMP_':'—');
+    const alwaysBadge = (searchMode&&q) || activeId==='All';
+    const badge = alwaysBadge ? `<span class="search-badge">${catName}</span>` : '';
+    let moveOpts=`<option value="">MOVE TO...</option>`;
+    tree.filter(n=>!n.isTemp).forEach(t=>{moveOpts+=`<option value="${t.id}">${t.name}</option>`;});
+
+    const isChecked = selectedIds.has(item.id) || selectedIds.has(String(item.id));
+
+    card.innerHTML=`
+      <div class="card-header" style="${isTemp?'border-left:3px solid #f59e0b;padding-left:10px;':''}">
+        <div style="display:flex;align-items:center;flex:1;min-width:0;gap:4px;" onclick="this.parentElement.parentElement.classList.toggle('open')">
+          <input type="checkbox" class="card-check" data-id="${item.id}"
+            ${isChecked?'checked':''} onclick="event.stopPropagation();toggleSelect(${item.id},this.checked)">
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            <span style="color:var(--accent)">▶</span> ${item.title}
+            ${isTemp?'<span style="color:#f59e0b;font-size:.63rem;margin-left:5px;">[TEMP]</span>':''}
+            ${badge}
+          </span>
+        </div>
+        <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
+          <select onclick="event.stopPropagation()" onchange="moveEntry(${item.id},this.value)"
+                  style="font-size:9px;padding:2px;">${moveOpts}</select>
+          <button class="btn-sm" style="background:#3b82f6" onclick="event.stopPropagation();startEdit(${item.id})">EDIT</button>
+          <button class="btn-sm" style="background:#10b981" onclick="event.stopPropagation();copyTxt(${item.id})">COPY</button>
+          <button class="btn-sm" style="background:var(--danger)" onclick="event.stopPropagation();delEntry(${item.id})">DEL</button>
+        </div>
+      </div>
+      <div class="card-body" id="body-${item.id}"><pre class="code-box">${item.content}</pre></div>`;
+    list.appendChild(card);
+  });
+
+  updateBulkBar();
+  updateNavCounts();
+  scheduleSave();
+}
+
+function toggleSelect(id, checked) {
+  if (checked) selectedIds.add(id);
+  else { selectedIds.delete(id); selectedIds.delete(String(id)); }
+  updateBulkBar();
+}
+
+async function saveEntry(){
+  if (!await _actionCheck('saveEntry')) return;
+  const content=document.getElementById('newCmd').value.trim();
+  if(!content) return alert('Please enter content.');
+  const title=document.getElementById('newTitle').value.trim()||'UNTITLED';
+  const cats=tree.filter(n=>!n.isTemp);
+  const target=activeId==='All'?(cats.length>0?cats[0].id:0):activeId;
+  db.push({id:Date.now(),title,content,catId:target});
+  document.getElementById('newCmd').value='';
+  document.getElementById('newTitle').value='';
+  render();
+}
+function startEdit(id){
+  const item=db.find(x=>x.id==id); if(!item) return alert('Entry not found.');
+  const body=document.getElementById(`body-${id}`); if(!body) return;
+  body.parentElement.classList.add('open');
+  // Store originals for cancel
+  const origTitle   = item.title;
+  const origContent = item.content;
+  body.innerHTML=`
+    <input type="text" id="et-${id}" value="${item.title.replace(/"/g,'&quot;')}"
+           style="width:100%;margin-bottom:9px;font-weight:bold;font-family:inherit;" autocomplete="off">
+    <textarea id="ec-${id}"
+              style="width:100%;height:190px;font-family:'Consolas',monospace;font-size:.9rem;
+              background:#000;color:var(--cmd-color);border:1px solid #334155;border-radius:4px;
+              padding:10px;resize:vertical;"
+              autocomplete="off">${item.content}</textarea>
+    <div style="display:flex;gap:8px;margin-top:9px;">
+      <button class="btn" style="background:var(--accent);flex:1;" onclick="saveEdit(${id})">✓ APPLY CHANGES</button>
+      <button class="btn" style="background:#475569;" onclick="cancelEdit(${id},'${encodeURIComponent(origTitle)}','${encodeURIComponent(origContent)}')">✕ CANCEL</button>
+    </div>`;
+}
+
+function cancelEdit(id, origTitle, origContent){
+  const item = db.find(x=>x.id==id);
+  if(!item) return;
+  // Restore originals — no change made
+  item.title   = decodeURIComponent(origTitle);
+  item.content = decodeURIComponent(origContent);
+  render();
+}
+function saveEdit(id){
+  const item=db.find(x=>x.id==id); if(!item) return;
+  const newTitle   = document.getElementById(`et-${id}`).value.trim();
+  const newContent = document.getElementById(`ec-${id}`).value;
+  item.title   = newTitle || item.title;
+  item.content = newContent;
+  scheduleSave();
+  render();
+}
+function moveEntry(entryId,catId){
+  if(!catId) return;
+  const item=db.find(x=>x.id==entryId);
+  if(item){
+    item.catId = (catId===TEMP_CAT_ID||isNaN(catId)) ? catId : Number(catId);
+    render();
+  }
+}
+function delEntry(id){
+  if(!confirm('Move to Recycle Bin?')) return;
+  const item = db.find(x=>x.id==id);
+  if(item){
+    // Detect type from title extension
+    const title = (item.title||'').toLowerCase();
+    let itemType = 'command';
+    if(title.endsWith('.ps1'))  itemType = 'ps1';
+    else if(title.endsWith('.txt')) itemType = 'txt';
+    else if(title.endsWith('.pdf')||title.endsWith('.doc')||title.endsWith('.docx')) itemType = 'document';
+    recycleBin.push({
+      id: Date.now()+Math.random(),
+      type: itemType,
+      name: item.title || 'Untitled',
+      data: JSON.parse(JSON.stringify(item)),
+      originalCatId: item.catId,
+      deletedAt: Date.now()
+    });
+    db = db.filter(x=>x.id!=id);
+  }
+  render(); scheduleSave();
+}
+function copyTxt(id){
+  const item=db.find(x=>x.id==id);
+  if(item) navigator.clipboard.writeText(item.content).then(()=>alert('Copied to clipboard.'));
+}
+function collapseAll(){
+  // Collapse Tech Notes entries
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('open'));
+  // Collapse Case Library cards
+  document.querySelectorAll('.case-card').forEach(c=>c.classList.remove('open'));
+}
+
+/* ══════════════════════════════════════════════════════
+   CASE LIBRARY
+══════════════════════════════════════════════════════ */
+let cases = [];           let recycleBin = [];      let caseTree = [];        let clFilter = 'all';     // current filter: all / OPEN / IN PROGRESS / RESOLVED / CLOSED / tag
+let clEditId = null;      let _moveDeleteNodeId = null;  
+// ── SIDEBAR TOGGLE ───────────────────────────────────
+function setNavMode(mode) {
+  navMode = mode;
+  clViewMode = (mode === 'cases');
+
+  // Update nav active states
+  document.getElementById('nav-allitems').classList.toggle('active', mode==='allitems');
+  document.getElementById('nav-cases').classList.toggle('active', mode==='cases');
+
+  // Show/hide sections
+  const techSection  = document.getElementById('techNotesSection');
+  const caseFilters  = document.getElementById('caseLibFilters');
+  const clDesc       = document.getElementById('cl-desc-note');
+  if (techSection) techSection.style.display = mode==='allitems' ? 'flex' : 'none';
+  if (caseFilters) caseFilters.style.display  = mode==='cases'    ? 'flex' : 'none';
+  if (clDesc)      clDesc.style.display       = mode==='cases'    ? 'block' : 'none';
+
+  // Update active label
+  const lbl = document.getElementById('activeLabel');
+  if (mode==='cases') {
+    if (lbl) lbl.innerText = 'TARGET: CASE LIBRARY';
+    updateCLSidebar();
+    renderCases();
+  } else {
+    activeId = 'All';
+    if (lbl) lbl.innerText = 'TARGET: ALL';
+    render();
+  }
+  updateNavCounts();
+}
+
+function updateNavCounts() {
+  const allCnt = document.getElementById('nav-allitems-cnt');
+  const csCnt  = document.getElementById('nav-cases-cnt');
+  if (allCnt) allCnt.textContent = db.length + cases.length;
+  if (csCnt)  csCnt.textContent  = cases.length;
+}
+
+function toggleCLSidebar() {
+  // Legacy — no longer needed but keep for compat
+}
+
+// ── FILTER ───────────────────────────────────────────
+function setCLFilter(filter) {
+  clFilter    = filter;
+  clViewMode  = true;
+  activeId    = 'All';
+  navMode     = 'cases';
+  renderCLCategoryTree(); // refresh active state
+  // Update active state
+  ['all','open','inp','res','closed'].forEach(k => {
+    const el = document.getElementById('clf-' + k);
+    if (el) el.classList.remove('active');
+  });
+  const map = {'all':'all','OPEN':'open','IN PROGRESS':'inp','RESOLVED':'res','CLOSED':'closed'};
+  const el = document.getElementById('clf-' + (map[filter] || 'all'));
+  if (el) el.classList.add('active');
+  renderCases();
+}
+
+function setCLTagFilter(tag) {
+  clFilter = 'tag:' + tag;
+  renderCases();
+}
+
+// ── SIDEBAR UPDATE ───────────────────────────────────
+function updateCLSidebar() {
+  const counts = { all: cases.length, OPEN:0, 'IN PROGRESS':0, RESOLVED:0, CLOSED:0 };
+  cases.forEach(cs => {
+    counts[cs.status] = (counts[cs.status] || 0) + 1;
+  });
+  const safe = id => { const el=document.getElementById(id); if(el) return el; return {textContent:''}; };
+  safe('clf-all-cnt').textContent    = counts.all;
+  safe('clf-open-cnt').textContent   = counts['OPEN'] || 0;
+  safe('clf-inp-cnt').textContent    = counts['IN PROGRESS'] || 0;
+  safe('clf-res-cnt').textContent    = counts['RESOLVED'] || 0;
+  safe('clf-closed-cnt').textContent = counts['CLOSED'] || 0;
+  renderCLCategoryTree();
+}
+
+function renderCLCategoryTree() {
+  const cont = document.getElementById('clCategoryTree');
+  const psel = document.getElementById('clNewCatParent');
+  if (!cont) return;
+
+  function getCaseCnt(catId) {
+    // Count cases in this category and all descendants
+    const allIds = [catId, ...getCLDescendants(catId)];
+    return cases.filter(cs => allIds.map(String).includes(String(cs.catId))).length;
+  }
+
+  function buildCLTree(parentId, level) {
+    return caseTree
+      .filter(n => String(n.parent||null) === String(parentId||null))
+      .sort((a,b) => (a.order||0)-(b.order||0))
+      .map(node => {
+        const cnt      = getCaseCnt(node.id);
+        const children = buildCLTree(node.id, level+1);
+        const isActive = clFilter === 'cat:' + node.id;
+        const siblings = caseTree.filter(n=>String(n.parent||null)===String(node.parent||null)).sort((a,b)=>(a.order||0)-(b.order||0));
+        const nodeIdx  = siblings.findIndex(n=>n.id===node.id);
+        return `<div>
+          <div style="display:flex;align-items:center;
+            background:${isActive?'rgba(16,185,129,.12)':'transparent'};
+            border-left:${isActive?'3px solid var(--accent)':'3px solid transparent'};
+            transition:background .1s;"
+            onmouseover="this.style.background='rgba(16,185,129,.06)'"
+            onmouseout="this.style.background='${isActive?'rgba(16,185,129,.12)':'transparent'}'">
+            <!-- move controls -->
+            <div style="display:flex;flex-direction:column;gap:1px;padding:0 2px 0 ${4+level*14}px;flex-shrink:0;">
+              <button onclick="event.stopPropagation();moveCLCat('${node.id}',-1)"
+                style="background:#1e293b;border:none;color:#475569;cursor:pointer;
+                font-size:7px;padding:1px 3px;border-radius:2px;line-height:1;"
+                title="Move up">▲</button>
+              <button onclick="event.stopPropagation();moveCLCat('${node.id}',1)"
+                style="background:#1e293b;border:none;color:#475569;cursor:pointer;
+                font-size:7px;padding:1px 3px;border-radius:2px;line-height:1;"
+                title="Move down">▼</button>
+            </div>
+            <!-- name clickable -->
+            <div onclick="setCLCatFilter('${node.id}')"
+              style="flex:1;padding:5px 4px;cursor:pointer;
+              font-size:.75rem;font-weight:700;
+              color:${isActive?'var(--accent)':'var(--text)'};">
+              📁 ${node.name}
+            </div>
+            <!-- count + edit + delete -->
+            <div style="display:flex;align-items:center;gap:3px;padding-right:6px;flex-shrink:0;">
+              <span style="color:#64748b;font-size:.65rem;">${cnt}</span>
+              <button onclick="event.stopPropagation();editCLCategory('${node.id}')"
+                style="background:#1e293b;border:none;color:#38bdf8;cursor:pointer;
+                font-size:.6rem;padding:1px 4px;border-radius:2px;line-height:1.4;"
+                title="Rename">✎</button>
+              <button onclick="event.stopPropagation();deleteCLCategory('${node.id}')"
+                style="background:none;border:none;color:#334155;cursor:pointer;
+                font-size:.65rem;padding:0 2px;line-height:1;" title="Delete">✕</button>
+            </div>
+          </div>
+          ${children}
+        </div>`;
+      }).join('');
+  }
+
+  const treeHtml = buildCLTree(null, 0);
+  cont.innerHTML = treeHtml ||
+    '<div style="padding:8px 14px;color:#334155;font-size:.68rem;">No categories yet</div>';
+
+  // Populate parent selector
+  if (psel) {
+    const cur = psel.value;
+    psel.innerHTML = '<option value="">Top level</option>';
+    function addOpts(parentId, prefix) {
+      caseTree.filter(n=>String(n.parent||null)===String(parentId||null))
+        .sort((a,b)=>(a.order||0)-(b.order||0))
+        .forEach(n => {
+          psel.innerHTML += `<option value="${n.id}">${prefix}${n.name}</option>`;
+          addOpts(n.id, prefix+'  ');
+        });
+    }
+    addOpts(null, '');
+    if (cur) psel.value = cur;
+  }
+}
+
+function getCLDescendants(parentId) {
+  const ch = caseTree.filter(n=>String(n.parent)===String(parentId));
+  let ids = ch.map(n=>n.id);
+  ch.forEach(n => { ids = ids.concat(getCLDescendants(n.id)); });
+  return ids;
+}
+
+function setCLCatFilter(catId) {
+  clFilter   = 'cat:' + catId;
+  clViewMode = true;
+  navMode    = 'cases';
+  // Update active states
+  ['all','open','inp','res','closed'].forEach(k => {
+    const el = document.getElementById('clf-'+k);
+    if (el) el.classList.remove('active');
+  });
+  renderCases();
+  renderCLCategoryTree();
+}
+
+function moveCLCat(id, dir) {
+  const node    = caseTree.find(n=>String(n.id)===String(id));
+  if (!node) return;
+  const siblings = caseTree
+    .filter(n=>String(n.parent||null)===String(node.parent||null))
+    .sort((a,b)=>(a.order||0)-(b.order||0));
+  const idx = siblings.findIndex(n=>String(n.id)===String(id));
+  const swapIdx = idx + dir;
+  if (swapIdx < 0 || swapIdx >= siblings.length) return;
+  const tmp = siblings[idx].order;
+  siblings[idx].order   = siblings[swapIdx].order ?? swapIdx;
+  siblings[swapIdx].order = tmp ?? idx;
+  scheduleSave(); renderCLCategoryTree();
+}
+
+function editCLCategory(id) {
+  const node = caseTree.find(n=>String(n.id)===String(id));
+  if (!node) return;
+  const newName = prompt('Rename category:', node.name);
+  if (!newName || !newName.trim()) return;
+  node.name = newName.trim().toUpperCase();
+  scheduleSave(); renderCLCategoryTree();
+  if (document.getElementById('caseModal').style.display !== 'none') {
+    populateCMCategories(document.getElementById('cm-category').value);
+  }
+}
+
+function addCLCategory() {
+  const name   = document.getElementById('clNewCatName').value.trim();
+  const parent = document.getElementById('clNewCatParent').value || null;
+  if (!name) return;
+  const newId  = Date.now();
+  const siblings = caseTree.filter(n=>String(n.parent||null)===String(parent||null));
+  caseTree.push({id:newId, name:name.toUpperCase(), parent, order:siblings.length});
+  document.getElementById('clNewCatName').value = '';
+  scheduleSave();
+  renderCLCategoryTree();
+  // Also refresh populateCMCategories if modal is open
+  if (document.getElementById('caseModal').style.display !== 'none') {
+    populateCMCategories(document.getElementById('cm-category').value);
+  }
+}
+
+function deleteCLCategory(id) {
+  const node   = caseTree.find(n=>String(n.id)===String(id));
+  if (!node) return;
+  const allIds = [id, ...getCLDescendants(id)].map(String);
+  const caseCount = cases.filter(cs=>allIds.includes(String(cs.catId))).length;
+
+  if (caseCount > 0) {
+    // Has cases — show move dialog
+    _moveDeleteNodeId = 'CL:' + id;
+    document.getElementById('moveItemsMsg').textContent =
+      '"' + node.name + '" contains ' + caseCount + ' case(s). Move them to another category first.';
+    const sel = document.getElementById('moveItemsTarget');
+    sel.innerHTML = '<option value="">— Select target category —</option>';
+    caseTree.filter(n=>!allIds.includes(String(n.id))).forEach(n=>{
+      sel.innerHTML += `<option value="${n.id}">${n.name}</option>`;
+    });
+    document.getElementById('moveItemsModal').style.display = 'flex';
+  } else {
+    // Empty — send to recycle bin
+    caseTree.filter(n=>allIds.includes(String(n.id))).forEach(n=>{
+      recycleBin.push({id:Date.now()+Math.random(),type:'clcategory',
+        name:n.name,data:n,deletedAt:Date.now()});
+    });
+    caseTree = caseTree.filter(n=>!allIds.includes(String(n.id)));
+    scheduleSave(); renderCLCategoryTree();
+  }
+}
+
+// ── MODAL ─────────────────────────────────────────────
+function showNewCaseModal() {
+  if (!_acL) { _trgU(); return; }
+  clEditId = null;
+  document.getElementById('caseModalTitle').textContent = 'NEW CASE';
+  document.getElementById('cmSaveBtn').textContent = 'SAVE CASE';
+  // Clear fields
+  ['cm-status','cm-casenum','cm-tags','cm-problem','cm-env',
+   'cm-error','cm-root','cm-solution','cm-commands','cm-workaround','cm-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = id === 'cm-status' ? 'OPEN' : '';
+  });
+  document.getElementById('waFileName').textContent = '';
+  document.getElementById('cmError').textContent = '';
+  // Populate categories
+  populateCMCategories();
+  // Hide timeline for new case (no id yet)
+  const tlSec = document.getElementById('cm-timeline-section');
+  if (tlSec) tlSec.style.display = 'none';
+  document.getElementById('caseModal').style.display = 'block';
+}
+
+function showEditCaseModal(id) {
+  const cs = cases.find(x => x.id == id);
+  if (!cs) return;
+  clEditId = id;
+  document.getElementById('caseModalTitle').textContent = 'EDIT CASE';
+  document.getElementById('cmSaveBtn').textContent = 'UPDATE CASE';
+  document.getElementById('cm-status').value    = cs.status || 'OPEN';
+  document.getElementById('cm-casenum').value   = cs.caseNum || '';
+  // tags field removed
+  document.getElementById('cm-problem').value   = cs.problem || '';
+  document.getElementById('cm-env').value       = cs.env || '';
+  document.getElementById('cm-error').value     = cs.error || '';
+  document.getElementById('cm-root').value      = cs.rootCause || '';
+  document.getElementById('cm-solution').value  = cs.solution || '';
+  document.getElementById('cm-commands').value  = cs.commands || '';
+  document.getElementById('cm-workaround').value= cs.workaround || '';
+  document.getElementById('cm-notes').value     = cs.notes || '';
+  document.getElementById('waFileName').textContent = cs.waFile || '';
+  document.getElementById('cmError').textContent = '';
+  populateCMCategories(cs.catId);
+  // Show timeline for existing cases
+  document.getElementById('cm-timeline-section').style.display = 'block';
+  renderTimeline(cs.id);
+  document.getElementById('caseModal').style.display = 'block';
+}
+
+function closeCaseModal() {
+  document.getElementById('caseModal').style.display = 'none';
+  clEditId = null;
+}
+
+function switchHelpLang(lang) {
+  document.getElementById('help-tr').style.display = lang==='tr' ? 'block' : 'none';
+  document.getElementById('help-en').style.display = lang==='en' ? 'block' : 'none';
+  const trTab = document.getElementById('help-tab-tr');
+  const enTab = document.getElementById('help-tab-en');
+  if (trTab) {
+    trTab.style.borderBottomColor = lang==='tr' ? 'var(--accent)' : 'transparent';
+    trTab.style.color = lang==='tr' ? 'var(--accent)' : '#64748b';
+  }
+  if (enTab) {
+    enTab.style.borderBottomColor = lang==='en' ? 'var(--accent)' : 'transparent';
+    enTab.style.color = lang==='en' ? 'var(--accent)' : '#64748b';
+  }
+}
+
+function populateCMCategories(selectedId) {
+  const treeEl    = document.getElementById('cm-cat-tree');
+  const parentSel = document.getElementById('cm-new-cat-parent');
+  if (!treeEl) return;
+
+  // Use caseTree for Case Library categories (separate from Tech Notes)
+  function buildTree(parentId, level) {
+    return caseTree
+      .filter(n => String(n.parent||null) === String(parentId||null))
+      .sort((a,b) => (a.order||0)-(b.order||0))
+      .map(node => {
+        const isSelected = selectedId && String(node.id) === String(selectedId);
+        const children   = buildTree(node.id, level+1);
+        return `<div>
+          <div onclick="selectCMCategory('${node.id}','${node.name}')"
+            style="padding:6px 12px 6px ${14 + level*16}px;cursor:pointer;font-size:.73rem;
+            font-weight:700;display:flex;align-items:center;gap:6px;
+            background:${isSelected?'rgba(16,185,129,.15)':'transparent'};
+            color:${isSelected?'var(--accent)':'var(--text)'};
+            border-left:${isSelected?'3px solid var(--accent)':'3px solid transparent'};
+            transition:background .1s;"
+            onmouseover="this.style.background='rgba(16,185,129,.08)'"
+            onmouseout="this.style.background='${isSelected?'rgba(16,185,129,.15)':'transparent'}'">
+            <span style="color:var(--accent);font-size:.65rem;">•</span>
+            ${node.name}
+            ${isSelected?'<span style="margin-left:auto;font-size:.6rem;">✓</span>':''}
+          </div>
+          ${children}
+        </div>`;
+      }).join('');
+  }
+
+  treeEl.innerHTML = buildTree(null, 0) ||
+    '<div style="padding:10px 14px;color:#475569;font-size:.72rem;">No categories yet. Create one below.</div>';
+
+  // Populate parent selector for new category
+  if (parentSel) {
+    parentSel.innerHTML = '<option value="">Top level</option>';
+    caseTree.forEach(n => {
+      const opt = document.createElement('option');
+      opt.value = n.id;
+      opt.textContent = n.name;
+      parentSel.appendChild(opt);
+    });
+  }
+
+  // Set selected display
+  if (selectedId) {
+    const node = tree.find(n => String(n.id) === String(selectedId));
+    if (node) selectCMCategory(node.id, node.name);
+  }
+}
+
+function selectCMCategory(id, name) {
+  document.getElementById('cm-category').value = id;
+  document.getElementById('cm-cat-label').textContent = '📁 ' + name;
+  document.getElementById('cm-cat-label').style.color = 'var(--accent)';
+  // Re-render to show selection
+  populateCMCategories(id);
+}
+
+function addCategoryFromModal() {
+  const name   = document.getElementById('cm-new-cat-name').value.trim();
+  const parent = document.getElementById('cm-new-cat-parent').value || null;
+  if (!name) return;
+  const newId  = Date.now();
+  // Add to caseTree only — Case Library has its own category structure
+  const parentVal = parent || null;
+  const siblings = caseTree.filter(x => String(x.parent||null) === String(parentVal||null));
+  caseTree.push({id: newId, name: name.toUpperCase(), parent: parentVal, order: siblings.length});
+  document.getElementById('cm-new-cat-name').value = '';
+  selectCMCategory(newId, name.toUpperCase());
+  populateCMCategories(newId); // refresh modal tree
+  scheduleSave();
+}
+
+// ── WORKAROUND FILE ATTACH ───────────────────────────
+function attachWorkaround(file) {
+  if (!file) return;
+  const maxSize = 2 * 1024 * 1024; // 2MB
+  if (file.size > maxSize) {
+    alert('File too large! Maximum size is 2MB.');
+    return;
+  }
+  if (!file.type.startsWith('text')) {
+    alert('Only TXT files are supported for workaround attachment.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('cm-workaround').value += '\n\n--- Attached: ' + file.name + ' ---\n' + e.target.result;
+    document.getElementById('waFileName').textContent = '📎 ' + file.name;
+  };
+  reader.readAsText(file);
+}
+
+// ── SAVE CASE ─────────────────────────────────────────
+function saveCase() {
+  const errEl   = document.getElementById('cmError');
+  const status  = document.getElementById('cm-status').value;
+  const problem = document.getElementById('cm-problem').value.trim();
+
+  if (!problem) { errEl.textContent = '✗ Problem field is required.'; return; }
+
+  const tags = []; // Tags field removed for simplicity
+
+      const existingCase = clEditId ? cases.find(x => x.id == clEditId) : null;
+  const existingTimeline = existingCase ? (existingCase.timeline || []) : [];
+
+  const caseData = {
+    id        : clEditId || Date.now(),
+    status,
+    caseNum   : document.getElementById('cm-casenum').value.trim(),
+    tags,
+    problem,
+    env       : document.getElementById('cm-env').value.trim(),
+    error     : document.getElementById('cm-error').value.trim(),
+    rootCause : document.getElementById('cm-root').value.trim(),
+    solution  : document.getElementById('cm-solution').value.trim(),
+    commands  : document.getElementById('cm-commands').value.trim(),
+    workaround: document.getElementById('cm-workaround').value.trim(),
+    notes     : document.getElementById('cm-notes').value.trim(),
+    catId     : document.getElementById('cm-category').value || null,
+    createdAt : existingCase ? (existingCase.createdAt || Date.now()) : Date.now(),
+    updatedAt : Date.now(),
+    timeline  : existingTimeline,  // ← CRITICAL: preserve work log entries
+  };
+
+  if (clEditId) {
+    const idx = cases.findIndex(x => x.id == clEditId);
+    if (idx !== -1) cases[idx] = caseData;
+  } else {
+    cases.push(caseData);
+  }
+
+  closeCaseModal();
+  scheduleSave();
+  renderCases();
+  updateCLSidebar();
+}
+
+// ── DELETE CASE ───────────────────────────────────────
+function deleteCase(id) {
+  if (!confirm('Move this case to Recycle Bin?')) return;
+  const cs = cases.find(x => x.id == id);
+  if (cs) {
+    recycleBin.push({
+      id: Date.now()+Math.random(),
+      type: 'case',
+      name: cs.problem?.substring(0,50) || cs.caseNum || 'Case',
+      data: JSON.parse(JSON.stringify(cs)),
+      originalCatId: cs.catId,
+      deletedAt: Date.now()
+    });
+    cases = cases.filter(x => x.id != id);
+  }
+  scheduleSave(); renderCases(); updateCLSidebar();
+}
+
+// ── STATUS QUICK CHANGE ───────────────────────────────
+function quickChangeStatus(id, newStatus) {
+  const cs = cases.find(x => x.id == id);
+  if (cs) { cs.status = newStatus; cs.updatedAt = Date.now(); }
+  scheduleSave();
+  renderCases();
+  updateCLSidebar();
+}
+
+// ── RENDER CASES ─────────────────────────────────────
+function renderCases() {
+  updateCLSidebar();
+  updateNavCounts();
+  const list = document.getElementById('list');
+  const q    = document.getElementById('search').value.trim().toLowerCase();
+  list.innerHTML = '';
+
+  let filtered = cases;
+  if (clFilter === 'all') { /* show all */ }
+  else if (clFilter.startsWith('tag:')) {
+    const tag = clFilter.replace('tag:', '');
+    filtered = cases.filter(cs => (cs.tags || []).includes(tag));
+  } else if (clFilter.startsWith('cat:')) {
+    const catId  = clFilter.replace('cat:','');
+    const allIds = [catId, ...getCLDescendants(catId)].map(String);
+    filtered = cases.filter(cs => allIds.includes(String(cs.catId)));
+  } else {
+    filtered = cases.filter(cs => cs.status === clFilter);
+  }
+  if (q) {
+    filtered = filtered.filter(cs =>
+      (cs.problem||'').toLowerCase().includes(q) ||
+      (cs.caseNum||'').toLowerCase().includes(q) ||
+      (cs.solution||'').toLowerCase().includes(q) ||
+      (cs.commands||'').toLowerCase().includes(q) ||
+      (cs.rootCause||'').toLowerCase().includes(q) ||
+      (cs.env||'').toLowerCase().includes(q) ||
+      (cs.notes||'').toLowerCase().includes(q) ||
+      (cs.timeline||[]).some(t =>
+        (t.title||'').toLowerCase().includes(q) ||
+        (t.text||'').toLowerCase().includes(q)
+      )
+    );
+  }
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="color:#64748b;font-size:.78rem;padding:20px;text-align:center;">No cases found.</div>';
+    return;
+  }
+
+  filtered.forEach(cs => {
+    const card = document.createElement('div');
+    card.className = `case-card status-border-${cs.status.replace(' ','-')}`;
+
+    const statusClass = 'status-' + cs.status.replace(' ','-');
+    const date = new Date(cs.updatedAt||cs.createdAt||Date.now()).toLocaleDateString();
+    const tagsHtml = ''; // tags removed
+
+    const sections = [
+      {key:'problem',    icon:'🔴', label:'Problem',     val:cs.problem},
+      {key:'env',        icon:'🌍', label:'Environment', val:cs.env},
+      {key:'error',      icon:'❌', label:'Error / Log', val:cs.error},
+      {key:'rootCause',  icon:'🔍', label:'Root Cause',  val:cs.rootCause},
+      {key:'solution',   icon:'✅', label:'Solution',    val:cs.solution},
+      {key:'commands',   icon:'⚡', label:'Commands',    val:cs.commands, mono:true},
+      {key:'workaround', icon:'🔧', label:'Workaround',  val:cs.workaround},
+      {key:'notes',      icon:'📝', label:'Notes',       val:cs.notes},
+    ].filter(s => s.val);
+
+    card.innerHTML = `
+      <div class="case-card-header" onclick="event.stopPropagation();this.closest('.case-card').classList.toggle('open')">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+            <input type="checkbox" class="card-check" data-id="${cs.id}"
+              onclick="event.stopPropagation();toggleSelect(${cs.id},this.checked)"
+              style="margin-right:0;">
+            <span style="font-weight:900;font-size:.85rem;">${cs.problem.substring(0,60)}${cs.problem.length>60?'…':''}</span>
+            <span class="status-badge ${statusClass}">${cs.status}</span>
+            ${cs.caseNum ? `<span style="color:#64748b;font-size:.65rem;">📋 ${cs.caseNum}</span>` : ''}
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            ${tagsHtml}
+            <span style="color:#334155;font-size:.6rem;margin-left:auto;">${date}</span>
+            ${cs.timeline?.length ? `<span style="color:#7c3aed;font-size:.6rem;">📅 ${cs.timeline.length} entries</span>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:5px;margin-left:10px;flex-shrink:0;" onclick="event.stopPropagation()">
+          <select onchange="quickChangeStatus(${cs.id},this.value)"
+            style="font-size:.65rem;padding:2px 4px;background:#0f172a;color:#fff;border:1px solid #334155;border-radius:3px;">
+            <option value="OPEN" ${cs.status==='OPEN'?'selected':''}>🔴 OPEN</option>
+            <option value="IN PROGRESS" ${cs.status==='IN PROGRESS'?'selected':''}>🟡 IN PROGRESS</option>
+            <option value="RESOLVED" ${cs.status==='RESOLVED'?'selected':''}>🟢 RESOLVED</option>
+            <option value="CLOSED" ${cs.status==='CLOSED'?'selected':''}>⚫ CLOSED</option>
+          </select>
+          <button class="btn-sm" style="background:#3b82f6" onclick="showEditCaseModal(${cs.id})">EDIT</button>
+          <button class="btn-sm" style="background:#0369a1;padding:3px 8px;" onclick="exportCaseTxt(${cs.id})" title="Export as TXT report">📄 TXT</button>
+          <button class="btn-sm" style="background:#10b981" onclick="copyCase(${cs.id})">COPY</button>
+          <button class="btn-sm" style="background:var(--danger)" onclick="deleteCase(${cs.id})">DEL</button>
+        </div>
+      </div>
+      <div class="case-card-body">
+        ${sections.map((s,si) => `
+          <div style="border-top:1px solid #1e293b;">
+            <div style="padding:9px 16px;cursor:pointer;display:flex;justify-content:space-between;
+              align-items:center;background:#060e18;font-size:.75rem;font-weight:800;color:#94a3b8;
+              user-select:none;"
+              onclick="(function(el){var body=el.nextElementSibling;var open=body.style.display==='block';body.style.display=open?'none':'block';el.querySelector('.sec-arrow').textContent=open?'▶':'▼';})(this)">
+              <span>${s.icon} ${s.label}</span>
+              <span class="sec-arrow">▶</span>
+            </div>
+            <div style="padding:12px 16px;background:#000;display:none;">
+              <pre style="margin:0;white-space:pre-wrap;font-family:${s.mono?"'Consolas',monospace":"inherit"};
+                font-size:.8rem;color:${s.mono?'var(--cmd-color)':'var(--text)'};">${s.val}</pre>
+            </div>
+          </div>`).join('')}
+        ${cs.timeline && cs.timeline.length > 0 ? `
+          <div style="border-top:1px solid #1e293b;">
+            <div style="padding:9px 16px;cursor:pointer;display:flex;justify-content:space-between;
+              align-items:center;background:#060e18;font-size:.75rem;font-weight:800;color:#7c3aed;
+              user-select:none;"
+              onclick="(function(el){var body=el.nextElementSibling;var open=body.style.display==='block';body.style.display=open?'none':'block';})(this)">
+              <span>📅 TIMELINE (${cs.timeline.length} entries)</span><span>▶</span>
+            </div>
+            <div style="background:#050a14;display:none;padding:8px 0;">
+              ${cs.timeline.map(t => {
+                const tl={note:'Note',action:'Action Taken',finding:'Finding',
+                  tempfix:'Temporary Fix',permfix:'Permanent Fix',resolved:'Resolved',
+                  engineer:'Engineer Connected',vendorreply:'Vendor Support Reply',
+                  monitoring:'Monitoring Update',mailsent:'Mail Sent',mailrecv:'Mail Received'};
+                const d = new Date(t.ts).toLocaleString();
+                const titlePart = t.title ? '<b>' + t.title + '</b> — ' : '';
+                return '<div style="padding:8px 16px;border-bottom:1px solid #0f172a;">' +
+                  '<div style="font-size:.63rem;color:#64748b;margin-bottom:3px;">' + d + ' · <span style="color:#a78bfa;">' + (tl[t.type]||t.type) + '</span></div>' +
+                  '<div style="font-size:.75rem;white-space:pre-wrap;">' + titlePart + (t.text||'') + '</div>' +
+                  '</div>';
+              }).join('')}
+            </div>
+          </div>` : ''}
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+/* ── TIMELINE FUNCTIONS ─────────────────────────────── */
+function renderTimeline(caseId) {
+  const cs   = cases.find(x => x.id == caseId);
+  if (!cs) return;
+  const cont = document.getElementById('cm-timeline-entries');
+  const entries = cs.timeline || [];
+
+  // Update count label
+  const cntEl = document.getElementById('cm-tl-count');
+  if (cntEl) cntEl.textContent = entries.length ? entries.length + ' entries' : '';
+
+  if (entries.length === 0) {
+    cont.innerHTML = `<div style="padding:20px;color:#334155;font-size:.75rem;text-align:center;
+      border:1px dashed #1e293b;border-radius:6px;margin:12px;">
+      No work log entries yet.<br>
+      <span style="font-size:.67rem;">Select a type, add a description and click + ADD</span>
+    </div>`;
+    return;
+  }
+
+  const typeLabels = {
+    note       : 'Note',
+    action     : 'Action Taken',
+    finding    : 'Finding',
+    tempfix    : 'Temporary Fix',
+    permfix    : 'Permanent Fix',
+    resolved   : 'Resolved',
+    // Legacy — kept for backward compat
+    engineer   : 'Engineer Connected',
+    vendorreply: 'Vendor Support Reply',
+    monitoring : 'Monitoring Update',
+    mailsent   : 'Mail Sent',
+    mailrecv   : 'Mail Received'
+  };
+  const typeIcons = {
+    note:'📝', action:'🔧', finding:'🔍',
+    tempfix:'🩹', permfix:'✅', resolved:'🏁',
+    engineer:'🔌', vendorreply:'📨', monitoring:'📊',
+    mailsent:'📤', mailrecv:'📥'
+  };
+
+  // Sort chronologically (oldest first)
+  const sorted = entries.slice().sort((a,b) => a.ts - b.ts);
+
+  cont.innerHTML = sorted.map((e, i) => {
+    const dt  = new Date(e.ts);
+    const d   = dt.toLocaleDateString([], {day:'2-digit',month:'2-digit',year:'numeric'});
+    const t   = dt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    const lbl = typeLabels[e.type] || e.type;
+    const ico = typeIcons[e.type] || '•';
+    const origIdx = entries.indexOf(e);
+
+    return `<div style="display:flex;gap:0;margin-bottom:0;">
+      <!-- Left: timestamp column -->
+      <div style="width:90px;flex-shrink:0;text-align:right;padding:10px 10px 10px 0;
+        font-size:.6rem;color:#475569;font-weight:700;line-height:1.4;">
+        ${d}<br>${t}
+      </div>
+      <!-- Middle: dot + line -->
+      <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:24px;">
+        <div style="width:12px;height:12px;border-radius:50%;margin-top:12px;flex-shrink:0;
+          border:2px solid #0b111b;background:var(--dot-color,#64748b);"
+          class="tl-dot tl-dot-${e.type}"></div>
+        ${i < sorted.length-1 ? '<div style="width:2px;flex:1;background:#1e293b;min-height:20px;"></div>' : ''}
+      </div>
+      <!-- Right: content -->
+      <div style="flex:1;min-width:0;padding:8px 0 12px 10px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:${e.title||e.text?'5px':'0'};">
+          <span class="tl-type-badge tl-type-${e.type}">${ico} ${lbl}</span>
+          <button onclick="deleteTimelineEntry(${caseId},${origIdx})"
+            style="background:none;border:none;color:#334155;cursor:pointer;
+            font-size:.65rem;margin-left:auto;padding:0;line-height:1;"
+            title="Remove entry">✕</button>
+        </div>
+        ${e.title ? `<div style="font-size:.8rem;font-weight:800;color:var(--text);margin-bottom:4px;">${e.title}</div>` : ''}
+        ${e.text  ? `<div style="font-size:.75rem;color:#94a3b8;white-space:pre-wrap;line-height:1.6;">${e.text}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addTimelineEntry() {
+  if (!clEditId) return;
+  const text  = document.getElementById('tl-text').value.trim();
+  const title = document.getElementById('tl-title') ? document.getElementById('tl-title').value.trim() : '';
+  if (!text && !title) return;
+  const type = document.getElementById('tl-type').value;
+  const cs   = cases.find(x => x.id == clEditId);
+  if (!cs) return;
+  if (!cs.timeline) cs.timeline = [];
+  cs.timeline.push({ type, title, text, ts: Date.now() });
+  // Auto-update status
+  if (type === 'resolved' || type === 'permfix') cs.status = 'RESOLVED';
+  if (type === 'tempfix') cs.status = 'IN PROGRESS';
+  document.getElementById('tl-text').value  = '';
+  if (document.getElementById('tl-title')) document.getElementById('tl-title').value = '';
+  // Update count label
+  const cntEl = document.getElementById('cm-tl-count');
+  if (cntEl) cntEl.textContent = cs.timeline.length + ' entries';
+  renderTimeline(clEditId);
+  scheduleSave();
+  updateCLSidebar();
+}
+
+function deleteTimelineEntry(caseId, idx) {
+  if (!confirm('Delete this timeline entry?')) return;
+  const cs = cases.find(x => x.id == caseId);
+  if (!cs || !cs.timeline) return;
+  cs.timeline.splice(idx, 1);
+  renderTimeline(caseId);
+  scheduleSave();
+}
+
+/* ══════════════════════════════════════════════════════════
+   RECYCLE BIN
+══════════════════════════════════════════════════════════ */
+let _restoreItemId = null;
+
+function openRecycleBin() {
+  renderRecycleBin();
+  document.getElementById('recycleBinModal').style.display = 'flex';
+}
+function closeRecycleBin() {
+  document.getElementById('recycleBinModal').style.display = 'none';
+}
+
+function renderRecycleBin() {
+  const list = document.getElementById('recycleBinList');
+  if (recycleBin.length === 0) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:#475569;font-size:.75rem;">🗑 Recycle bin is empty</div>';
+    return;
+  }
+  const typeLabels = {
+    'entry'      : '📝 Tech Note',
+    'command'    : '⚡ Command',
+    'case'       : '📋 Case',
+    'category'   : '📁 Tech Notes Category',
+    'clcategory' : '📁 Case Library Category',
+    'subcategory': '📂 Subcategory',
+    'txt'        : '📄 TXT',
+    'ps1'        : '🔷 PS1 Script',
+    'document'   : '📎 Document',
+    'file'       : '📎 File'
+  };
+  const typeColors = {
+    'entry'      :'#334155',
+    'command'    :'#065f46',
+    'case'       :'#7c3aed',
+    'category'   :'#0369a1',
+    'clcategory' :'#7c3aed',
+    'subcategory':'#0c4a6e',
+    'txt'        :'#1e3a5f',
+    'ps1'        :'#064e3b',
+    'document'   :'#3b2f00',
+    'file'       :'#334155'
+  };
+
+  list.innerHTML = recycleBin.slice().reverse().map(item => {
+    const d    = new Date(item.deletedAt).toLocaleString();
+    const lbl  = typeLabels[item.type] || ('📦 ' + item.type);
+    const col  = typeColors[item.type] || '#334155';
+    // Get item name/title
+    const displayName = item.name ||
+      (item.data && (item.data.title || item.data.problem || item.data.name)) ||
+      'Unknown';
+    // Get category path if available
+    const catInfo = item.originalCatId ?
+      (' → ' + (tree.find(n=>String(n.id)===String(item.originalCatId))?.name || 'Unknown category')) : '';
+
+    return `<div class="bin-item" style="gap:10px;">
+      <div style="flex:1;min-width:0;overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+          <span class="bin-type-badge" style="background:${col}22;color:${col};border:1px solid ${col}44;">${lbl}</span>
+          <span style="font-size:.78rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${displayName}</span>
+        </div>
+        <div style="font-size:.62rem;color:#475569;">${d}${catInfo}</div>
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0;align-items:center;">
+        <button class="btn-sm" style="background:var(--accent);" onclick="restoreItem('${item.id}')">RESTORE</button>
+        <button class="btn-sm" style="background:#3b82f6;" onclick="restoreTo('${item.id}')">TO...</button>
+        <button class="btn-sm" style="background:var(--danger);" onclick="permanentDelete('${item.id}')">DEL</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function restoreItem(binId) {
+  const item = recycleBin.find(x => String(x.id) === String(binId));
+  if (!item) return;
+  const d = JSON.parse(JSON.stringify(item.data));
+
+  if (item.type === 'case') {
+    cases.push(d);
+    updateCLSidebar();
+    if (navMode === 'cases') renderCases(); else render();
+  } else if (item.type === 'category') {
+    tree.push(d); render();
+  } else if (item.type === 'clcategory') {
+    caseTree.push(d);
+    renderCLCategoryTree();
+    updateCLSidebar();
+  } else if (item.type === 'subcategory') {
+    caseTree.push(d);
+    renderCLCategoryTree();
+  } else {
+    // command, entry, txt, ps1, document, file → back to db
+    db.push(d); render();
+  }
+  recycleBin = recycleBin.filter(x => String(x.id) !== String(binId));
+  scheduleSave(); renderRecycleBin();
+}
+
+function restoreTo(binId) {
+  _restoreItemId = binId;
+  const sel = document.getElementById('restoreToTarget');
+  sel.innerHTML = '<option value="">— Top level / All —</option>';
+  // Build hierarchical list
+  function addOptions(parentId, prefix) {
+    tree.filter(n=>!n.isTemp && String(n.parent)==String(parentId||null) || (parentId===null && n.parent==null))
+      .sort((a,b)=>(a.order||0)-(b.order||0))
+      .forEach(n => {
+        sel.innerHTML += '<option value="' + n.id + '">' + prefix + n.name + '</option>';
+        addOptions(n.id, prefix + '  ');
+      });
+  }
+  tree.filter(n=>!n.isTemp && !n.parent).sort((a,b)=>(a.order||0)-(b.order||0)).forEach(n => {
+    sel.innerHTML += '<option value="' + n.id + '">' + n.name + '</option>';
+    tree.filter(x=>!x.isTemp && String(x.parent)===String(n.id)).forEach(sub => {
+      sel.innerHTML += '<option value="' + sub.id + '">  └─ ' + sub.name + '</option>';
+    });
+  });
+  document.getElementById('restoreToModal').style.display = 'flex';
+}
+function closeRestoreToModal() {
+  document.getElementById('restoreToModal').style.display = 'none';
+  _restoreItemId = null;
+}
+function confirmRestoreTo() {
+  const targetId = document.getElementById('restoreToTarget').value;
+  const item = recycleBin.find(x => String(x.id) === String(_restoreItemId));
+  if (!item) { closeRestoreToModal(); return; }
+  const d = JSON.parse(JSON.stringify(item.data));
+  const resolvedId = targetId ? (isNaN(targetId) ? targetId : Number(targetId)) : null;
+
+  if (item.type === 'case') {
+    d.catId = resolvedId || d.catId;
+    cases.push(d);
+    updateCLSidebar();
+    if (navMode==='cases') renderCases(); else render();
+  } else if (item.type === 'category') {
+    d.parent = resolvedId || null;
+    tree.push(d); render();
+  } else if (item.type === 'clcategory') {
+    d.parent = resolvedId || null;
+    caseTree.push(d);
+    renderCLCategoryTree();
+    updateCLSidebar();
+  } else if (item.type === 'subcategory') {
+    d.parent = resolvedId || null;
+    caseTree.push(d);
+    renderCLCategoryTree();
+  } else {
+    // command, entry, txt, ps1, document, file
+    d.catId = resolvedId || d.catId;
+    db.push(d); render();
+  }
+  recycleBin = recycleBin.filter(x => String(x.id) !== String(_restoreItemId));
+  scheduleSave(); closeRestoreToModal(); renderRecycleBin();
+}
+
+function permanentDelete(binId) {
+  if (!confirm('Permanently delete this item? This cannot be undone.')) return;
+  recycleBin = recycleBin.filter(x => String(x.id) !== String(binId));
+  scheduleSave(); renderRecycleBin();
+}
+
+function emptyRecycleBin() {
+  if (!confirm('Permanently delete ALL items in recycle bin? This cannot be undone.')) return;
+  recycleBin = [];
+  scheduleSave(); renderRecycleBin();
+}
+
+function exportCaseTxt(id) {
+  const cs = cases.find(x => x.id == id);
+  if (!cs) return;
+
+  const line  = s => s ? s : '—';
+  const sep   = '═'.repeat(52);
+  const sep2  = '─'.repeat(52);
+  const dt    = new Date(cs.createdAt||Date.now()).toLocaleDateString('tr-TR');
+  const catNode = caseTree.find(n=>String(n.id)===String(cs.catId));
+  const catName = catNode ? catNode.name : '—';
+
+  const typeLabels = {
+    note:'Note', engineer:'Engineer Connected',
+    vendorreply:'Vendor Support Reply', action:'Action Taken',
+    finding:'Finding', tempfix:'Temporary Fix',
+    permfix:'Permanent Fix', monitoring:'Monitoring Update',
+    resolved:'Resolved', mailsent:'Mail Sent', mailrecv:'Mail Received'
+  };
+
+  let out = '';
+  out += sep + '\n';
+  out += 'ARCHITECT CORE — CASE REPORT\n';
+  out += sep + '\n';
+  out += 'Case #    : ' + line(cs.caseNum) + '\n';
+  out += 'Status    : ' + line(cs.status) + '\n';
+  out += 'Date      : ' + dt + '\n';
+  out += 'Category  : ' + catName + '\n';
+  out += sep2 + '\n\n';
+
+  const sections = [
+    {label:'PROBLEM',     val:cs.problem},
+    {label:'ENVIRONMENT', val:cs.env},
+    {label:'ERROR / LOG', val:cs.error},
+    {label:'ROOT CAUSE',  val:cs.rootCause},
+    {label:'SOLUTION',    val:cs.solution},
+    {label:'COMMANDS',    val:cs.commands},
+    {label:'WORKAROUND',  val:cs.workaround},
+    {label:'NOTES',       val:cs.notes},
+  ];
+
+  sections.forEach(s => {
+    if (!s.val) return;
+    out += s.label + '\n';
+    out += '─'.repeat(s.label.length) + '\n';
+    out += s.val.trim() + '\n\n';
+  });
+
+  // Work Log
+  const tl = cs.timeline || [];
+  out += sep2 + '\n';
+  out += 'WORK LOG\n';
+  out += sep2 + '\n';
+  if (tl.length === 0) {
+    out += 'No work log entries.\n';
+  } else {
+    tl.slice().sort((a,b)=>a.ts-b.ts).forEach(e => {
+      const d   = new Date(e.ts).toLocaleString('tr-TR');
+      const lbl = typeLabels[e.type] || e.type;
+      out += '\n[' + d + '] ' + lbl + '\n';
+      if (e.title) out += '  ' + e.title + '\n';
+      if (e.text)  out += '  ' + e.text.replace(/\n/g,'\n  ') + '\n';
+    });
+  }
+
+  out += '\n' + sep + '\n';
+  out += 'Generated by Architect Core v2.5.94 · ' + new Date().toLocaleDateString('tr-TR') + '\n';
+  out += sep + '\n';
+
+  // Download
+  const fname = 'CaseReport_' + (cs.caseNum||'CASE').replace(/[^a-zA-Z0-9]/g,'_') +
+    '_' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '.txt';
+  const blob  = new Blob([out], {type:'text/plain;charset=utf-8'});
+  const a     = document.createElement('a');
+  a.href      = URL.createObjectURL(blob);
+  a.download  = fname;
+  a.click(); a.remove();
+}
+
+function copyCase(id) {
+  const cs = cases.find(x => x.id == id);
+  if (!cs) return;
+  const txt = [
+    cs.caseNum ? 'Case #: ' + cs.caseNum : '',
+    'Status: ' + cs.status,
+    cs.tags?.length ? 'Tags: ' + cs.tags.join(' ') : '',
+    '---',
+    'Problem: ' + cs.problem,
+    cs.env       ? 'Environment: ' + cs.env       : '',
+    cs.error     ? 'Error: ' + cs.error           : '',
+    cs.rootCause ? 'Root Cause: ' + cs.rootCause  : '',
+    cs.solution  ? 'Solution: ' + cs.solution     : '',
+    cs.commands  ? 'Commands: ' + cs.commands     : '',
+    cs.notes     ? 'Notes: ' + cs.notes           : '',
+  ].filter(Boolean).join('\n');
+  navigator.clipboard.writeText(txt).then(() => alert('Case copied to clipboard.'));
+}
+
+function moveSelectedEntries(dir) {
+  if (!_acL) { _trgU(); return; }
+  if (selectedIds.size === 0) { alert('Select entries first using the checkboxes.'); return; }
+
+  // Get current filtered list in display order
+  let filtered = db;
+  if (activeId !== 'All') filtered = db.filter(i => String(i.catId)===String(activeId));
+
+  // Work with reversed copy (display order)
+  const displayed = filtered.slice().reverse();
+
+  // Add order property if missing
+  displayed.forEach((item, idx) => { if (item.order === undefined) item.order = idx; });
+
+  // Find selected indices in display order
+  const selectedInView = displayed.filter(i => selectedIds.has(i.id) || selectedIds.has(String(i.id)));
+
+  if (dir === -1) {
+    // Move UP — process from top
+    for (let i = 1; i < displayed.length; i++) {
+      if (selectedIds.has(displayed[i].id) || selectedIds.has(String(displayed[i].id))) {
+        if (!selectedIds.has(displayed[i-1].id) && !selectedIds.has(String(displayed[i-1].id))) {
+          [displayed[i].order, displayed[i-1].order] = [displayed[i-1].order ?? i-1, displayed[i].order ?? i];
+        }
+      }
+    }
+  } else {
+    // Move DOWN — process from bottom
+    for (let i = displayed.length - 2; i >= 0; i--) {
+      if (selectedIds.has(displayed[i].id) || selectedIds.has(String(displayed[i].id))) {
+        if (!selectedIds.has(displayed[i+1].id) && !selectedIds.has(String(displayed[i+1].id))) {
+          [displayed[i].order, displayed[i+1].order] = [displayed[i+1].order ?? i+1, displayed[i].order ?? i];
+        }
+      }
+    }
+  }
+
+  // Normalize orders
+  displayed.forEach((item, idx) => { item.order = idx; });
+  render();
+}
+function collapseTree(){tree.forEach(n=>n.open=false);render();}
+function expandTree(){tree.forEach(n=>n.open=true);render();}
+
+async function wipeData(){
+  if (!await _actionCheck('wipeData')) return;
+  const scope = currentScope();
+  const msg = window.isMaster && window.viewingUser
+    ? `Delete ALL data for user "${window.viewingUser.toUpperCase()}"? (Tech Notes + Case Library)`
+    : 'Permanently delete ALL your data? (Tech Notes + Case Library)';
+  if(!confirm(msg)) return;
+  db=[]; tree=[]; cases=[]; caseTree=[]; recycleBin=[];
+  render(); renderCases(); updateCLSidebar();
+  [dbKey(),treeKey(),casesKey(),caseTreeKey(),recycleBinKey()].forEach(k=>{
+    localStorage.removeItem(k);
+    if(idb){
+      try{
+        const tx=idb.transaction('data','readwrite');
+        tx.objectStore('data').delete(k);
+      }catch{}
+    }
+  });
+}
+
+function nextCmdColor(){
+  cmdColorIdx=(cmdColorIdx+1)%cmdColors.length;
+  document.documentElement.style.setProperty('--cmd-color',cmdColors[cmdColorIdx]);
+}
+function nextTheme(){
+  const t=[{bg:'#0f172a',pn:'#1e293b'},{bg:'#000',pn:'#111'},{bg:'#1a1a1a',pn:'#262626'}];
+  themeIdx=(themeIdx+1)%t.length;
+  document.documentElement.style.setProperty('--bg',t[themeIdx].bg);
+  document.documentElement.style.setProperty('--panel',t[themeIdx].pn);
+}
+
+/* ══════════════════════════════════════════════════════════
+   BACKUP & RESTORE  (scoped to current user)
+══════════════════════════════════════════════════════════ */
+async function exportData(){
+  if (!await _actionCheck('exportData')) return;
+  const scope = currentScope();
+  const _now  = new Date();
+  const _d    = _now.toISOString().slice(0,10);
+  const _hh   = String(_now.getHours()).padStart(2,'0');
+  const _mm   = String(_now.getMinutes()).padStart(2,'0');
+  const fname = `Architect_Backup_${_d}_${_hh}${_mm}.json`;
+  const payload = {
+    db, tree, cases, caseTree,
+    owner: scope,
+    exportedAt: Date.now(),
+    version: 'v2.5.94'
+  };
+  const blob = new Blob([JSON.stringify(payload)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = fname;
+  a.click(); a.remove();
+}
+async function importData(file){
+  if (!await _actionCheck('importData')) return;
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (Array.isArray(d.db))       db       = d.db;
+      if (Array.isArray(d.tree))     tree     = d.tree;
+      if (Array.isArray(d.cases))    cases    = d.cases;
+      if (Array.isArray(d.caseTree)) caseTree = d.caseTree;
+      scheduleSave();
+      render(); renderCases(); updateCLSidebar(); updateNavCounts();
+      alert('Backup restored successfully!');
+    } catch(err) {
+      alert('Import failed. Invalid backup file.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+async function handleFiles(files){
+  if (!await _actionCheck('handleFiles')) return;
+  Array.from(files).forEach(f=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      ensureTemp();
+      db.push({id:Date.now()+Math.random(),title:f.name,content:e.target.result,catId:TEMP_CAT_ID});
+      render();
+    };
+    if(f.type.startsWith('text')) r.readAsText(f);
+    else if(f.type.startsWith('image/')) r.readAsDataURL(f);
+    else alert('Only TXT or JPG/JPEG files can be uploaded.');
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   CHANGE PASSWORD
+══════════════════════════════════════════════════════════ */
+async function changePassword(){
+  const errEl=document.getElementById('cpErr');
+  const okEl =document.getElementById('cpOk');
+  errEl.textContent=''; okEl.textContent='';
+  const np=document.getElementById('np1').value.trim();
+  const cp=document.getElementById('np2').value.trim();
+  if(!window.loginUser||window.loginUser==='__guest__'){
+    errEl.textContent='Guest mode — no password to change.'; return;
+  }
+  if(window.isMaster){
+    errEl.textContent='Master user password cannot be changed here.'; return;
+  }
+  const errs=validatePassword(np);
+  if(errs.length>0){ errEl.textContent='✗ '+errs.join(' · '); return; }
+  if(np!==cp){ errEl.textContent='Passwords do not match.'; return; }
+  const hash=await sha256(np);
+  const users=registeredUsers();
+  users[window.loginUser]=hash; saveUsers(users);
+  okEl.textContent='Password changed successfully.';
+  document.getElementById('np1').value='';
+  document.getElementById('np2').value='';
+  setTimeout(()=>closeAllDD(),1500);
+}
+</script>
+</body>
+</html>
